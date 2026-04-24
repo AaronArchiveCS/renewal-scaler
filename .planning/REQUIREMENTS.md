@@ -74,34 +74,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IDENT-01 | TBD | Pending |
-| IDENT-02 | TBD | Pending |
-| IDENT-03 | TBD | Pending |
-| IDENT-04 | TBD | Pending |
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| DATA-03 | TBD | Pending |
-| DATA-04 | TBD | Pending |
-| DATA-05 | TBD | Pending |
-| DATA-06 | TBD | Pending |
-| PRICE-01 | TBD | Pending |
-| PRICE-02 | TBD | Pending |
-| PRICE-03 | TBD | Pending |
-| PRICE-04 | TBD | Pending |
-| PRICE-05 | TBD | Pending |
-| OUT-01 | TBD | Pending |
-| OUT-02 | TBD | Pending |
-| OUT-03 | TBD | Pending |
-| OUT-04 | TBD | Pending |
-| OUT-05 | TBD | Pending |
-| OUT-06 | TBD | Pending |
-| OUT-07 | TBD | Pending |
+| IDENT-01 | Phase 1 | Pending |
+| IDENT-02 | Phase 1 | Pending |
+| IDENT-03 | Phase 1 | Pending |
+| IDENT-04 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Pending |
+| PRICE-01 | Phase 2 | Pending |
+| PRICE-02 | Phase 2 | Pending |
+| PRICE-03 | Phase 2 | Pending |
+| PRICE-04 | Phase 2 | Pending |
+| PRICE-05 | Phase 2 | Pending |
+| OUT-01 | Phase 3 | Pending |
+| OUT-02 | Phase 3 | Pending |
+| OUT-03 | Phase 3 | Pending |
+| OUT-04 | Phase 3 | Pending |
+| OUT-05 | Phase 3 | Pending |
+| OUT-06 | Phase 3 | Pending |
+| OUT-07 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-23*
-*Last updated: 2026-04-23 after initial definition*
+*Last updated: 2026-04-23 after roadmap creation*
