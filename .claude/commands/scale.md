@@ -121,22 +121,223 @@ Tell the user: **"Workspace scope confirmed: [N] shop ID(s)."**
 
 Store the final list of shop IDs for use in Step 3.
 
-### Step 3: Data Fetch
+### Step 3: Parallel Data Fetch
 
-<!-- DATA FETCH STEPS — added by Plan 01-02 -->
+Now fetch usage and billing data from PostHog and Stripe simultaneously. Use the shop ID list from Step 2 for all queries.
 
-This step will be populated in the next plan. For now, summarize the confirmed identity:
-
-```
---- Identity Confirmed ---
-Company: [Company Name]
-HubSpot ID: [record ID]
-Tier: [customer_tier]
-Lifecycle: [lifecyclestage]
-ARR: [arr__active_deals_]
-Shop IDs: [comma-separated list of all scoped shop IDs]
-Workspace Count: [N]
 ---
 
-Identity resolution complete. Data fetch steps will be added in the next update.
+**3A: PostHog — UGC Usage and Limit (from groups table)**
+
+Tell the user: **"Fetching PostHog usage data..."**
+
+Use `mcp__claude_ai_PostHog__query-run` with this HogQL query. For multi-workspace customers, run one query per shop ID and sum the results.
+
+```json
+{
+  "query": {
+    "kind": "HogQLQuery",
+    "query": "SELECT key AS shop_id, JSONExtractString(properties, 'shop_name') AS shop_name, JSONExtractFloat(properties, 'pricing_ugc_used') AS ugc_used, JSONExtractFloat(properties, 'pricing_ugc_total') AS ugc_total, JSONExtractFloat(properties, 'pricing_credits_used') AS credits_used, JSONExtractFloat(properties, 'pricing_credits_total') AS credits_total FROM groups WHERE key IN ('{shop_id_1}', '{shop_id_2}') LIMIT 10"
+  }
+}
 ```
+
+Replace the `IN (...)` clause with the actual shop IDs from Step 2.
+
+From the results, extract:
+
+- **UGC Used**: `pricing_ugc_used` — current billing period UGC consumed. For multi-workspace customers, sum across all shop IDs.
+- **UGC Limit**: `pricing_ugc_total` — current billing period UGC allowance. For multi-workspace, sum across all shop IDs.
+- **Utilization %**: `ugc_used / ugc_total * 100`, rounded to nearest integer.
+- **Credits Used / Credits Total**: If non-zero, include in output as supplementary data.
+
+**Note:** The `groups` table is the source of truth for UGC usage — it reflects the database, not frontend analytics events. The `events` table (`crm.shop_item.created`) only covers a small fraction of shops and is unreliable for UGC counts.
+
+If the query returns no rows for a shop ID, warn: "Shop ID [id] not found in PostHog groups table — verify it exists in the system."
+
+Tell the user: **"PostHog UGC data... done."**
+
+---
+
+**3B: PostHog — Active Seats (last 90 days)**
+
+Tell the user: **"Fetching PostHog active seat count..."**
+
+Use `mcp__claude_ai_PostHog__query-run` with this HogQL query:
+
+```json
+{
+  "query": {
+    "kind": "HogQLQuery",
+    "query": "SELECT COUNT(DISTINCT person_id) AS active_seats FROM events WHERE event = '$pageview' AND properties.shop_id IN ('{shop_id_1}', '{shop_id_2}') AND timestamp >= now() - INTERVAL 90 DAY"
+  }
+}
+```
+
+Replace shop IDs as above.
+
+**Important:** Use `$pageview` as the activity proxy, NOT `auth.user.logged_in` — that event only started March 24, 2026 and does not have enough historical data for reliable counts.
+
+Tell the user: **"PostHog seat count... done."**
+
+---
+
+**3C: Stripe — Plan, Pricing, and UGC Limit**
+
+Tell the user: **"Fetching Stripe billing data..."**
+
+The Stripe lookup uses a cascading strategy. Try each approach in order until a subscription is found:
+
+**Approach 1 — Stripe Customer ID from HubSpot (preferred):**
+
+Check if the HubSpot company record from Step 1 has a `stripe_customer_id` property. If it is populated, use:
+
+```
+mcp__claude_ai_Stripe__list_subscriptions
+  customer: "<stripe_customer_id>"
+```
+
+**Approach 2 — Search Stripe by shop_id metadata (fallback):**
+
+If no `stripe_customer_id` was found on the HubSpot record, search Stripe subscriptions by shop_id metadata:
+
+```
+mcp__claude_ai_Stripe__search_stripe_resources
+  resource: "subscriptions"
+  query: "metadata['shop_id']:'<shop_id>'"
+```
+
+Use the first (primary) shop ID from Step 2.
+
+**Approach 3 — Search Stripe by company name (last resort):**
+
+If Approaches 1 and 2 both return no results, search Stripe customers by company name:
+
+```
+mcp__claude_ai_Stripe__search_stripe_resources
+  resource: "customers"
+  query: "name:'<company_name>'"
+```
+
+Then use the matched customer's ID to list subscriptions:
+
+```
+mcp__claude_ai_Stripe__list_subscriptions
+  customer: "<matched_customer_id>"
+```
+
+---
+
+**Once a subscription is found, extract the following:**
+
+**Plan name:**
+
+Get the product linked to the subscription's price. The subscription response contains `items.data[0].price.product` (a product ID). Fetch the full product:
+
+```
+mcp__claude_ai_Stripe__fetch_stripe_resources
+  resource: "products/<product_id>"
+```
+
+The product `name` is the plan name.
+
+**Monthly and annual price:**
+
+Get the price object from the subscription's `items.data[0].price` (or fetch it if only the ID is available):
+
+```
+mcp__claude_ai_Stripe__fetch_stripe_resources
+  resource: "prices/<price_id>"
+```
+
+- If `recurring.interval` is `"month"`: monthly price = `unit_amount / 100`. Annual price = monthly * 12.
+- If `recurring.interval` is `"year"`: annual price = `unit_amount / 100`. Monthly price = annual / 12.
+- If `unit_amount` is null but the subscription has a different amount field, use that.
+
+**UGC limit:**
+
+The UGC limit is already retrieved from PostHog's `groups` table in Step 3A (`pricing_ugc_total`). This is the database source of truth. No need to extract it from Stripe metadata.
+
+If the Stripe price nickname contains a UGC number (e.g., "C1 - 250 UGC", "CN5 5,000 UGC"), note it as a cross-reference but prefer the `pricing_ugc_total` value from PostHog.
+
+Tell the user: **"Stripe billing data... done."**
+
+---
+
+### Step 4: Validation
+
+After all data is fetched, validate the results before producing output.
+
+**Critical fields — hard-stop if missing (per D-13):**
+
+These fields are required. If any are null, missing, or could not be retrieved, **stop immediately** and show the error. Do NOT produce partial output.
+
+- **Plan name:** If null or missing, stop and show:
+  > MISSING: Plan name — could not find an active Stripe subscription for [Company Name]. Stripe customer: [stripe_id or "not found"]. Check Stripe manually and verify the customer has an active subscription.
+
+- **Current price:** If null or missing, stop and show:
+  > MISSING: Current price — Stripe subscription [sub_id] does not have a valid price object. Check the price configuration in Stripe for this subscription.
+
+- **UGC usage:** If the PostHog groups query returned an error or no rows for any shop ID, stop and show:
+  > MISSING: UGC usage — PostHog groups query failed for shop_id(s) [ids]. Error: [error message]. Check if these shop IDs exist in PostHog project 192859.
+
+  Note: Zero UGC used (`pricing_ugc_used = 0`) is a valid result (low-activity customer), NOT a missing field. Only hard-stop if the query itself errored or returned no rows.
+
+**Secondary fields — warn and continue (per D-13):**
+
+These fields are helpful but not blocking. If missing, add a warning to the output and proceed.
+
+- **Active seats:** If PostHog returned no data or an error:
+  > WARNING: Could not determine active seat count. PostHog $pageview query returned no data for shop_id(s) [ids].
+
+- **UGC limit:** If `pricing_ugc_total` is 0 or null in the groups table:
+  > WARNING: UGC limit is 0 or not set in PostHog groups table for shop_id(s) [ids]. Verify the limit in Stripe or admin dashboard.
+
+- **Workspace count:** If shop_id extraction had issues in Step 2:
+  > WARNING: Could not confirm workspace count. Raw shop_id field value: [raw value].
+
+**API failure — immediate stop (per D-15):**
+
+If any MCP tool call fails with an error response, connection error, or timeout, **stop immediately** and show:
+
+> ERROR: [System name — HubSpot / PostHog / Stripe] is unreachable. Tool call failed: [error message]. Re-run `/scale` when the system is available.
+
+Do NOT silently retry. Do NOT continue with partial data from other systems.
+
+---
+
+### Step 5: Output
+
+Display a structured text summary with all collected data. Use this exact format:
+
+```
+=== CUSTOMER DATA PROFILE ===
+
+Company:        [Company Name]
+Customer Tier:  [customer_tier from HubSpot]
+Shop ID(s):     [comma-separated list from Step 2]
+Workspaces:     [count of shop IDs]
+
+--- Current Plan ---
+Plan:           [Plan name from Stripe product]
+Monthly Price:  $[amount, formatted with commas]
+Annual Price:   $[amount, formatted with commas]
+
+--- UGC Usage (current billing period) ---
+UGC Used:       [pricing_ugc_used] / [pricing_ugc_total]
+Utilization:    [ugc_used / ugc_total * 100, rounded]%
+Credits Used:   [pricing_credits_used] / [pricing_credits_total] (if non-zero, otherwise omit this line)
+
+--- Seats ---
+Active Seats:   [count] (last 90 days)
+
+--- Warnings ---
+[Any warning messages from Step 4, each on its own line. If no warnings, show: "None"]
+
+Data collection complete. Phase 2 will generate renewal pricing options.
+```
+
+**Notes:**
+- This output format is for Phase 1 standalone use. Phase 2 will consume the same data programmatically to generate renewal pricing options.
+- All monetary values should include dollar signs and comma separators (e.g., $1,200 not $1200).
+- UGC data comes from PostHog's `groups` table (database source of truth), not the `events` table. The `events` table events like `crm.shop_item.created` only cover ~9 shops and are unreliable for UGC counts.
