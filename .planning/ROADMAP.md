@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. When identity is confirmed, the tool returns UGC rolling average, UGC limit, current plan name, monthly and annual price, active seats, and workspace count from their respective sources
   4. When any required field (plan, price, UGC usage) is missing or null, the tool stops and surfaces an explicit error — it does not proceed to produce pricing output
   5. Usage trend direction (growing, stable, declining) is shown alongside the 3-month average
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Skill skeleton + identity resolution (HubSpot search, disambiguation, shop ID confirmation)
-- [ ] 01-02: Parallel data fetch (PostHog UGC rolling avg + trend, HubSpot plan/seats/UGC limit, Stripe billing baseline)
+- [ ] 01-01-PLAN.md — Skill skeleton + identity resolution (HubSpot search, disambiguation, shop ID confirmation, workspace scoping)
+- [ ] 01-02-PLAN.md — Parallel data fetch (PostHog UGC rolling avg + trend + active seats, Stripe plan/pricing/UGC limit, validation, structured output)
 
 ### Phase 2: Pricing Engine
 **Goal**: Given a validated customer profile, the tool calculates the cheapest plan + add-on combination covering actual usage and produces 3 distinct renewal options with correct pricing
@@ -71,6 +71,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Layer | 0/2 | Not started | - |
+| 1. Data Layer | 0/2 | Planning complete | - |
 | 2. Pricing Engine | 0/2 | Not started | - |
 | 3. HTML Output | 0/1 | Not started | - |
