@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Skill skeleton + identity resolution (HubSpot search, disambiguation, shop ID confirmation, workspace scoping)
-- [ ] 01-02-PLAN.md — Parallel data fetch (PostHog UGC rolling avg + trend + active seats, Stripe plan/pricing/UGC limit, validation, structured output)
+- [x] 01-02-PLAN.md — Parallel data fetch (PostHog UGC from groups table + active seats, Stripe plan/pricing, validation, structured output)
 
 ### Phase 2: Pricing Engine
 **Goal**: Given a validated customer profile, the tool calculates the cheapest plan + add-on combination covering actual usage and produces 3 distinct renewal options with correct pricing
