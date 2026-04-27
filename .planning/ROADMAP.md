@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Skill skeleton + identity resolution (HubSpot search, disambiguation, shop ID confirmation, workspace scoping)
+- [x] 01-01-PLAN.md — Skill skeleton + identity resolution (HubSpot search, disambiguation, shop ID confirmation, workspace scoping)
 - [ ] 01-02-PLAN.md — Parallel data fetch (PostHog UGC rolling avg + trend + active seats, Stripe plan/pricing/UGC limit, validation, structured output)
 
 ### Phase 2: Pricing Engine
