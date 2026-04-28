@@ -13,7 +13,7 @@ Three phases matching the natural dependency chain: resolve who the customer is 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Data Layer** - Resolve customer identity and pull validated data from PostHog, HubSpot, and Stripe
-- [ ] **Phase 2: Pricing Engine** - Calculate optimal plan + add-on combinations and generate 3 renewal options
+- [ ] **Phase 2: Pricing Engine** - Calculate optimal plan + add-on combinations and generate 2 renewal options with correct discounts
 - [ ] **Phase 3: HTML Output** - Render a clean, self-contained document CSMs can screenshot or save as PDF
 
 ## Phase Details
@@ -35,19 +35,19 @@ Plans:
 - [x] 01-02-PLAN.md — Parallel data fetch (PostHog UGC from groups table + active seats, Stripe plan/pricing, validation, structured output)
 
 ### Phase 2: Pricing Engine
-**Goal**: Given a validated customer profile, the tool calculates the cheapest plan + add-on combination covering actual usage and produces 3 distinct renewal options with correct pricing
+**Goal**: Given a validated customer profile, the tool calculates the cheapest plan + add-on combination covering actual usage and produces 2 distinct renewal options with correct pricing
 **Depends on**: Phase 1
 **Requirements**: PRICE-01, PRICE-02, PRICE-03, PRICE-04, PRICE-05
 **Success Criteria** (what must be TRUE):
-  1. The tool selects the cheapest base plan + UGC add-on combination that covers 3-month usage plus 20% headroom — not the next plan up
-  2. Three options are generated varying both plan level and commitment type, each with a distinct rationale
-  3. Discount rules from the pricing doc are applied in the correct order — price derivation is transparent and auditable
-  4. No option is labeled "recommended" if it represents a downgrade from the client's current plan
-**Plans**: TBD
+  1. The tool selects the cheapest base plan + UGC add-on combination that covers actual usage exactly — no headroom buffer, not the next plan up
+  2. Two options are generated: annual commitment (10% off) and 2-year commitment (20% off), both using the same optimal combo
+  3. Discount rules apply to both base plan and UGC add-on packs — price derivation is transparent and auditable
+  4. Each option shows savings vs the customer's current Stripe spend
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Embedded pricing table + optimization rules (cheapest plan+add-on combo, headroom buffer, utilization classification)
-- [ ] 02-02: Option generation (3 options, commitment-type variants, discount application, savings calculation)
+- [ ] 02-01-PLAN.md — Embedded pricing table + optimal combo algorithm (cheapest plan+add-on calculation, edge cases for zero/high usage)
+- [ ] 02-02-PLAN.md — Option generation (2 options, annual/2-year discounts, savings vs current spend, already-optimal handling)
 
 ### Phase 3: HTML Output
 **Goal**: Pricing output renders as a self-contained HTML document with a current state baseline, 3 option cards, utilization insights, and error banners — ready to screenshot or print to PDF
@@ -71,6 +71,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Layer | 0/2 | Planning complete | - |
-| 2. Pricing Engine | 0/2 | Not started | - |
+| 1. Data Layer | 2/2 | Complete | 2026-04-27 |
+| 2. Pricing Engine | 0/2 | Planning complete | - |
 | 3. HTML Output | 0/1 | Not started | - |
