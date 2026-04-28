@@ -338,6 +338,72 @@ Data collection complete. Phase 2 will generate renewal pricing options.
 ```
 
 **Notes:**
-- This output format is for Phase 1 standalone use. Phase 2 will consume the same data programmatically to generate renewal pricing options.
 - All monetary values should include dollar signs and comma separators (e.g., $1,200 not $1200).
 - UGC data comes from PostHog's `groups` table (database source of truth), not the `events` table. The `events` table events like `crm.shop_item.created` only cover ~9 shops and are unreliable for UGC counts.
+
+---
+
+### Step 6: Pricing Reference Data
+
+> **This pricing table is the source of truth for renewal calculations. If Archive's pricing changes, update this table.**
+
+Use the following pricing structure for all renewal calculations:
+
+**Base Plans:**
+
+| Plan | Monthly | Annual (10% off) | 2-Year (20% off) | UGC Limit | Credits |
+|------|---------|-------------------|-------------------|-----------|---------|
+| Startup | $500/mo | $5,400/yr ($450/mo) | $9,600/yr ($400/mo) | 500/mo | 20,000/mo |
+| Growth | $1,500/mo | $16,200/yr ($1,350/mo) | $28,800/yr ($1,200/mo) | 2,500/mo | 70,000/mo |
+| Enterprise | $5,000/mo | $54,000/yr ($4,500/mo) | $96,000/yr ($4,000/mo) | 10,000/mo | 150,000/mo |
+
+**UGC Add-on Pack:** +500 UGC/mo for $250/mo. Stackable (customer can buy multiple packs). Same discount rates apply:
+- Annual commitment: $250/mo * 0.90 = $225/mo per pack ($2,700/yr per pack)
+- 2-Year commitment: $250/mo * 0.80 = $200/mo per pack ($4,800/yr per pack)
+
+**Not in scope:** Credit add-ons and extra competitor add-ons are excluded from renewal pricing calculations.
+
+Tell the user: **"Pricing table loaded. Calculating optimal plan..."**
+
+---
+
+### Step 7: Calculate Optimal Plan + Add-on Combination
+
+Using the customer's UGC usage from the CUSTOMER DATA PROFILE output in Step 5, find the cheapest base plan + UGC add-on combination that covers their actual usage. No headroom buffer -- match actual usage exactly.
+
+**Algorithm:**
+
+1. Read `pricing_ugc_used` from the Step 5 output (the UGC Used value).
+
+2. **Zero or null usage:** If `pricing_ugc_used` is 0 or null (valid data, not a missing field), recommend Startup with 0 add-on packs at $500/mo. Skip to the output step below.
+
+3. **For each base plan** (Startup, Growth, Enterprise), calculate:
+   - UGC gap = `pricing_ugc_used` - plan's UGC limit
+   - If gap <= 0: packs needed = 0 (the plan covers all usage)
+   - If gap > 0: packs needed = ceil(gap / 500)
+   - Total monthly cost = plan's monthly price + (packs needed * $250)
+   - Store: plan name, plan monthly price, UGC limit, packs needed, add-on monthly cost (packs * $250), total monthly cost
+
+4. **Select the combination with the lowest total monthly cost.** If two combinations tie on cost, prefer the one with the higher-tier plan (it includes more credits).
+
+5. **High usage warning:** If `pricing_ugc_used` exceeds 15,000, still calculate the optimal combo but append this warning after the result:
+   > NOTE: This customer uses [N] UGC/mo, which requires [X] add-on packs on top of Enterprise. Custom pricing may be more appropriate -- consult with leadership before presenting these options.
+
+6. **Show the calculation breakdown:**
+
+```
+=== OPTIMAL PLAN CALCULATION ===
+
+Customer UGC Usage: [pricing_ugc_used]/mo
+
+--- Comparison ---
+Startup ($500/mo, 500 UGC):      + [N] add-on packs ($[cost]/mo) = $[total]/mo
+Growth ($1,500/mo, 2,500 UGC):   + [N] add-on packs ($[cost]/mo) = $[total]/mo
+Enterprise ($5,000/mo, 10,000 UGC): + [N] add-on packs ($[cost]/mo) = $[total]/mo
+
+>>> Optimal: [Plan Name] + [N] UGC add-on pack(s) = $[total_monthly]/mo
+```
+
+Tell the user: **"Optimal plan calculated: [Plan Name] + [N] UGC add-on pack(s) at $[total_monthly]/mo."**
+
+Store the optimal combo result (plan name, packs needed, total monthly cost) for use in Step 8.
