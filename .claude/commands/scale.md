@@ -334,7 +334,7 @@ Active Seats:   [count] (last 90 days)
 --- Warnings ---
 [Any warning messages from Step 4, each on its own line. If no warnings, show: "None"]
 
-Data collection complete. Phase 2 will generate renewal pricing options.
+Data collection complete. Calculating optimal pricing...
 ```
 
 **Notes:**
@@ -407,3 +407,180 @@ Enterprise ($5,000/mo, 10,000 UGC): + [N] add-on packs ($[cost]/mo) = $[total]/m
 Tell the user: **"Optimal plan calculated: [Plan Name] + [N] UGC add-on pack(s) at $[total_monthly]/mo."**
 
 Store the optimal combo result (plan name, packs needed, total monthly cost) for use in Step 8.
+
+---
+
+### Step 8: Generate Renewal Options
+
+Using the optimal combo from Step 7 and the customer's current pricing from Step 5, generate two renewal options with commitment-based discounts.
+
+**Before generating options, check if the customer is already optimal:**
+
+Compare the customer's current plan name (from Step 5) against the optimal plan name (from Step 7), and compare the customer's current monthly price against the optimal annual-discounted monthly rate (within $50/mo tolerance to account for rounding). If BOTH match, the customer is already on the optimal plan at a competitive rate. In that case, show:
+
+```
+=== RENEWAL OPTIONS ===
+
+This customer is already on the optimal plan ([Plan Name]) at a competitive rate.
+Current: $[current_monthly]/mo | Optimal annual: $[optimal_annual_monthly]/mo
+No plan change recommended. Consider a 2-year lock-in for additional savings.
+```
+
+Then show ONLY Option 2 (the 2-year commitment) since the annual option would be redundant. Skip Option 1 below.
+
+**If the customer is NOT already optimal (normal case), generate both options:**
+
+**Option 1: Annual Commitment (10% off)**
+
+Apply 10% discount to BOTH the base plan monthly rate AND each add-on pack monthly rate:
+- Base plan discounted monthly: `plan_monthly * 0.90`
+- Each add-on pack discounted monthly: `$250 * 0.90 = $225`
+- Total monthly equivalent: `base_discounted + (packs * $225)`
+- Annual contract price: `total_monthly_equivalent * 12`
+
+**Option 2: 2-Year Commitment (20% off)**
+
+Apply 20% discount to BOTH the base plan monthly rate AND each add-on pack monthly rate:
+- Base plan discounted monthly: `plan_monthly * 0.80`
+- Each add-on pack discounted monthly: `$250 * 0.80 = $200`
+- Total monthly equivalent: `base_discounted + (packs * $200)`
+- Annual contract price: `total_monthly_equivalent * 12`
+- Total 2-year contract price: `annual_price * 2`
+
+**Savings calculation:**
+
+For each option, calculate:
+- Customer's current annual spend: `current_monthly_price * 12` (from Step 5's Monthly Price). If Step 5 already has an annual figure, use that directly.
+- Recommended annual spend: the annual contract price from the option
+- Annual savings: `current_annual - recommended_annual`
+- If savings is negative (recommended costs MORE than current), show the increase amount and note it explicitly. Do not hide cost increases.
+
+**No volume discounts, no loyalty discounts, no custom pricing.** Only the standard 10% annual and 20% 2-year discount rates apply.
+
+**Output format -- present both options as structured blocks:**
+
+```
+=== RENEWAL OPTIONS ===
+
+Current spend: $[current_monthly]/mo ($[current_annual]/yr) on [current_plan_name]
+Recommended plan: [optimal_plan_name] + [N] UGC add-on pack(s)
+
+--- Option 1: Annual Commitment ---
+Base plan:       [Plan Name] @ $[discounted_monthly]/mo (10% off $[list_monthly])
+UGC add-ons:     [N] pack(s) @ $[discounted_addon_monthly]/mo each (10% off $250)
+Monthly total:   $[total_monthly]
+Annual price:    $[annual_total]
+vs Current:      $[savings]/yr [savings | increase]
+
+--- Option 2: 2-Year Commitment ---
+Base plan:       [Plan Name] @ $[discounted_monthly]/mo (20% off $[list_monthly])
+UGC add-ons:     [N] pack(s) @ $[discounted_addon_monthly]/mo each (20% off $250)
+Monthly total:   $[total_monthly]
+Annual price:    $[annual_total]
+2-Year total:    $[two_year_total]
+vs Current:      $[savings]/yr [savings | increase]
+```
+
+**Display fields per option (all 7 required):**
+1. Base plan name (e.g., "Growth")
+2. Base plan price (discounted monthly rate)
+3. Number of UGC add-on packs (e.g., "2 packs")
+4. Add-on price (discounted monthly rate per pack, times number of packs)
+5. Total monthly equivalent
+6. Total annual / total contract price
+7. Savings vs current spend (or cost increase if applicable)
+
+Tell the user: **"Renewal options generated. Review the pricing above and use it for your renewal conversation."**
+
+---
+
+### Step 9: Generate HTML Document
+
+After displaying the renewal options text output, generate a polished HTML document that consolidates all the data from Steps 5-8 into a visual format CSMs can screenshot or print to PDF.
+
+Tell the user: **"Generating HTML report..."**
+
+**Build a complete HTML string** using the data already collected in the prior steps. The HTML must be fully self-contained — all CSS in a `<style>` tag, no external stylesheets, no JavaScript dependencies.
+
+**HTML Structure — include these sections in order:**
+
+**1. Header**
+
+Show the company name as a large heading, with customer tier, date generated, and shop ID(s) as secondary info below it.
+
+**2. Warning Banners (conditional)**
+
+If Step 4 produced any warnings (missing seats, uncertain UGC limit, workspace issues), render each warning as a yellow/amber banner block at the TOP of the document body, before any data sections. Each warning gets its own banner line. Style: amber/yellow background (#FEF3C7), dark amber text (#92400E), left border accent, padding. If there are no warnings, omit this section entirely — do not render an empty container.
+
+**3. Current State Baseline**
+
+Render the customer's current state as a clean data grid:
+- Current plan name and monthly/annual price (from Step 5)
+- UGC usage: used / limit with utilization percentage (from Step 5)
+- Active seats count (from Step 5)
+- Workspace count (number of shop IDs from Step 2)
+
+Use a card-style container with label-value pairs. Monetary values formatted with dollar signs and comma separators.
+
+**4. Utilization Insight**
+
+A single highlighted callout box with the utilization classification. Determine the classification from the utilization percentage calculated in Step 5:
+
+- **Overpaying** (utilization < 40%): Green-tinted box. Text: "This customer is paying $[current_monthly]/mo but only using [utilization]% of their [ugc_total] UGC allocation. They are spending approximately $[wasted_amount]/mo on unused capacity." Calculate wasted_amount as: `current_monthly * (1 - utilization/100)`, rounded to nearest dollar.
+- **Well-matched** (utilization 40-85%): Blue-tinted box. Text: "Usage aligns well with the current plan. The customer is using [ugc_used] of [ugc_total] UGC ([utilization]%). Room to grow without immediate upgrade pressure."
+- **Ceiling risk** (utilization > 85%): Red-tinted box. Text: "This customer is using [ugc_used] of [ugc_total] UGC ([utilization]%). They are approaching or exceeding plan limits. Proactive upgrade conversation recommended to avoid overage disruption."
+
+Color coding:
+- Overpaying: background #F0FDF4, border #16A34A, text #166534
+- Well-matched: background #EFF6FF, border #3B82F6, text #1E40AF
+- Ceiling risk: background #FEF2F2, border #DC2626, text #991B1B
+
+**5. Optimal Plan Calculation**
+
+Render the comparison table from Step 7 as an HTML table:
+- Columns: Plan, Base Price, UGC Limit, Add-on Packs, Add-on Cost, Total Monthly
+- Rows: Startup, Growth, Enterprise
+- Highlight the optimal (cheapest) row with a subtle green background (#F0FDF4)
+- Below the table, show the optimal selection: "Optimal: [Plan Name] + [N] UGC add-on pack(s) = $[total]/mo"
+- If high-usage warning (>15,000 UGC) was triggered in Step 7, show it as an amber note below the table
+
+**6. Renewal Option Cards**
+
+Render one card per option from Step 8. Each card is a bordered container with:
+- Card header: option name (e.g., "Option 1: Annual Commitment")
+- Plan name and base price (showing discount: "Growth @ $1,350/mo (10% off $1,500)")
+- Add-on packs and price (e.g., "2 packs @ $225/mo each (10% off $250)")
+- Total monthly equivalent (large, bold)
+- Total annual / contract price
+- Savings vs current: green text if saving money, red text if cost increase
+
+If the customer is already optimal (Step 8 detected this), show a single card with the "already optimal" message and only the 2-year lock-in option.
+
+Card styling: white background, 1px solid #E2E8F0 border, border-radius 8px, subtle shadow (0 1px 3px rgba(0,0,0,0.1)), padding 24px. Stack cards vertically with 16px gap.
+
+**7. Footer**
+
+Light gray text at the bottom: "Generated by /scale on [YYYY-MM-DD] | Internal use only — not for client distribution"
+
+**Styling requirements (in the `<style>` tag):**
+
+```
+- Font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+- Body: max-width 800px, margin 0 auto, padding 40px 24px, background #FAFAFA, color #1E293B
+- Headings: #0F172A, font-weight 600
+- Cards/sections: background #FFFFFF, border 1px solid #E2E8F0, border-radius 8px, padding 24px, margin-bottom 16px, box-shadow 0 1px 3px rgba(0,0,0,0.1)
+- Tables: width 100%, border-collapse collapse, th background #F8FAFC, td/th padding 10px 14px, border-bottom 1px solid #E2E8F0
+- Labels: font-size 13px, color #64748B, text-transform uppercase, letter-spacing 0.05em
+- Values: font-size 16px, font-weight 500, color #1E293B
+- Savings positive: color #16A34A
+- Savings negative (cost increase): color #DC2626
+- Print media query (@media print): background white, no shadows, no box-shadow, page-break-inside avoid on cards, hide footer "Generated by" line or make it smaller
+```
+
+**File output — after building the HTML string:**
+
+1. Sanitize the company name for the filename: lowercase, replace spaces with hyphens, remove any characters that are not alphanumeric or hyphens
+2. Generate the filename: `scale_[sanitized_company]_[YYYY-MM-DD].html`
+3. Write the file to `~/Downloads/[filename]` using the Write tool
+4. Open it in the default browser: run `open ~/Downloads/[filename]`
+5. Tell the user: **"HTML report saved to ~/Downloads/[filename] and opened in your browser."**
