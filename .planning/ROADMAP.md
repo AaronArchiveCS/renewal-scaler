@@ -12,9 +12,9 @@ Three phases matching the natural dependency chain: resolve who the customer is 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Layer** - Resolve customer identity and pull validated data from PostHog, HubSpot, and Stripe
-- [ ] **Phase 2: Pricing Engine** - Calculate optimal plan + add-on combinations and generate 2 renewal options with correct discounts
-- [ ] **Phase 3: HTML Output** - Render a clean, self-contained document CSMs can screenshot or save as PDF
+- [x] **Phase 1: Data Layer** - Resolve customer identity and pull validated data from PostHog, HubSpot, and Stripe
+- [x] **Phase 2: Pricing Engine** - Calculate optimal plan + add-on combinations and generate 2 renewal options with correct discounts
+- [x] **Phase 3: HTML Output** - Render a clean, self-contained document CSMs can screenshot or save as PDF
 
 ## Phase Details
 
@@ -46,8 +46,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Embedded pricing table + optimal combo algorithm (cheapest plan+add-on calculation, edge cases for zero/high usage)
-- [ ] 02-02-PLAN.md — Option generation (2 options, annual/2-year discounts, savings vs current spend, already-optimal handling)
+- [x] 02-01-PLAN.md — Embedded pricing table + optimal combo algorithm (cheapest plan+add-on calculation, edge cases for zero/high usage)
+- [x] 02-02-PLAN.md — Option generation (2 options, annual/2-year discounts, savings vs current spend, already-optimal handling)
 
 ### Phase 3: HTML Output
 **Goal**: Pricing output renders as a self-contained HTML document with a current state baseline, 3 option cards, utilization insights, and error banners — ready to screenshot or print to PDF
@@ -59,10 +59,10 @@ Plans:
   3. Each option card shows price derivation (base plan + add-ons + discount = final price) so CSMs can explain the math
   4. Utilization insight (overpaying, well-matched, ceiling risk) and annual savings figures appear in dollar amounts, not percentages
   5. Missing or uncertain data fields show warning banners at the top of the document — not buried at the bottom
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 03-01: HTML template (current state header, option cards, utilization insight, data warning banners, print CSS)
+- [x] 03-01-PLAN.md — HTML template (current state header, option cards, utilization insight, data warning banners, print CSS)
 
 ## Progress
 
@@ -72,5 +72,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Layer | 2/2 | Complete | 2026-04-27 |
-| 2. Pricing Engine | 0/2 | Planning complete | - |
-| 3. HTML Output | 0/1 | Not started | - |
+| 2. Pricing Engine | 2/2 | Complete | 2026-04-28 |
+| 3. HTML Output | 1/1 | Complete | 2026-04-29 |

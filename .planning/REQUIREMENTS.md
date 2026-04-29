@@ -33,13 +33,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Output & Presentation
 
-- [ ] **OUT-01**: Output is a self-contained HTML document (inline CSS, no external dependencies)
-- [ ] **OUT-02**: Output shows current state baseline (what the client pays now, what they use now)
-- [ ] **OUT-03**: Each option shows annual savings vs current spend where applicable
-- [ ] **OUT-04**: Output flags utilization insights (overpaying, underutilizing, hitting ceiling)
-- [ ] **OUT-05**: Each option shows price derivation (how the price was calculated — base plan + add-ons + discount)
-- [ ] **OUT-06**: Output shows data warning banners when fields are missing or uncertain
-- [ ] **OUT-07**: Output is visually clean and structured for quick scanning, easy to screenshot or save as PDF
+- [x] **OUT-01**: Output is a self-contained HTML document (inline CSS, no external dependencies)
+- [x] **OUT-02**: Output shows current state baseline (what the client pays now, what they use now)
+- [x] **OUT-03**: Each option shows annual savings vs current spend where applicable
+- [x] **OUT-04**: Output flags utilization insights (overpaying, underutilizing, hitting ceiling)
+- [x] **OUT-05**: Each option shows price derivation (how the price was calculated — base plan + add-ons + discount)
+- [x] **OUT-06**: Output shows data warning banners when fields are missing or uncertain
+- [x] **OUT-07**: Output is visually clean and structured for quick scanning, easy to screenshot or save as PDF
 
 ## v2 Requirements
 
@@ -89,13 +89,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRICE-03 | Phase 2 | Pending |
 | PRICE-04 | Phase 2 | Pending |
 | PRICE-05 | Phase 2 | Pending |
-| OUT-01 | Phase 3 | Pending |
-| OUT-02 | Phase 3 | Pending |
-| OUT-03 | Phase 3 | Pending |
-| OUT-04 | Phase 3 | Pending |
-| OUT-05 | Phase 3 | Pending |
-| OUT-06 | Phase 3 | Pending |
-| OUT-07 | Phase 3 | Pending |
+| OUT-01 | Phase 3 | Complete |
+| OUT-02 | Phase 3 | Complete |
+| OUT-03 | Phase 3 | Complete |
+| OUT-04 | Phase 3 | Complete |
+| OUT-05 | Phase 3 | Complete |
+| OUT-06 | Phase 3 | Complete |
+| OUT-07 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 22 total
