@@ -18,9 +18,9 @@
     --ink-3: #8A847A;
     --rule: #D9D2C2;
     --rule-2: #E8E2D2;
-    --accent: #2F5D3A;        /* deep forest — savings */
+    --accent: #2F5D3A;
     --accent-soft: #E8EFE3;
-    --highlight: #C9622E;     /* warm terracotta — for highlighted option */
+    --highlight: #C9622E;
     --highlight-soft: #F4E6D8;
   }
 
@@ -36,561 +36,125 @@
     padding: 32px 16px 96px;
   }
 
-  /* ── Page (letter-ish, but flexible) ─────────────────────────────── */
-  .page {
-    width: 100%;
-    max-width: 880px;
-    margin: 0 auto;
-    background: var(--paper);
-    box-shadow:
-      0 1px 0 rgba(0,0,0,.04),
-      0 30px 60px -20px rgba(40,30,10,.18),
-      0 12px 24px -12px rgba(40,30,10,.12);
-    position: relative;
-  }
+  .page { width: 100%; max-width: 880px; margin: 0 auto; background: var(--paper);
+    box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 30px 60px -20px rgba(40,30,10,.18), 0 12px 24px -12px rgba(40,30,10,.12);
+    position: relative; }
   .page + .page { margin-top: 28px; }
+  .page-inner { padding: 56px 64px 48px; position: relative; }
 
-  .page-inner {
-    padding: 56px 64px 48px;
-    position: relative;
-  }
+  .brand { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid var(--rule); margin-bottom: 36px; }
+  .brand-mark { display: flex; align-items: center; gap: 10px; }
+  .brand-glyph { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); position: relative; }
+  .brand-glyph::after { content: ""; position: absolute; inset: 5px; background: var(--paper); border-radius: 50%; }
+  .brand-glyph::before { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 2px; margin: -1px 0 0 -1px; background: var(--ink); border-radius: 50%; z-index: 1; }
+  .brand-name { font-family: 'Instrument Serif', serif; font-size: 22px; letter-spacing: -.01em; font-weight: 400; }
+  .brand-meta { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
 
-  /* ── Brand bar ────────────────────────────────────────────────── */
-  .brand {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 36px;
-  }
-  .brand-mark {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .brand-glyph {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--ink);
-    position: relative;
-  }
-  .brand-glyph::after {
-    content: ""; position: absolute; inset: 5px;
-    background: var(--paper); border-radius: 50%;
-  }
-  .brand-glyph::before {
-    content: ""; position: absolute; left: 50%; top: 50%;
-    width: 2px; height: 2px; margin: -1px 0 0 -1px;
-    background: var(--ink); border-radius: 50%;
-    z-index: 1;
-  }
-  .brand-name {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    letter-spacing: -.01em;
-    font-weight: 400;
-  }
-  .brand-meta {
-    font-size: 11px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 500;
-  }
-
-  /* ── Eyebrow + title ─────────────────────────────────────────── */
-  .eyebrow {
-    font-size: 11px;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-  .doc-title {
-    font-family: 'Instrument Serif', serif;
-    font-weight: 400;
-    font-size: 64px;
-    line-height: .98;
-    letter-spacing: -.02em;
-    margin-bottom: 14px;
-  }
+  .eyebrow { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 16px; }
+  .doc-title { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 64px; line-height: .98; letter-spacing: -.02em; margin-bottom: 14px; }
   .doc-title em { font-style: italic; color: var(--ink-2); }
-  .doc-sub {
-    font-size: 15px;
-    color: var(--ink-2);
-    max-width: 560px;
-    line-height: 1.55;
-    text-wrap: pretty;
-  }
+  .doc-sub { font-size: 15px; color: var(--ink-2); max-width: 560px; line-height: 1.55; text-wrap: pretty; }
 
-  .meta-row {
-    display: flex;
-    gap: 32px;
-    margin-top: 28px;
-    padding-top: 18px;
-    border-top: 1px solid var(--rule-2);
-    flex-wrap: wrap;
-  }
-  .meta-item .meta-label {
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .meta-item .meta-value {
-    font-size: 14px;
-    color: var(--ink);
-    font-weight: 500;
-  }
+  .meta-row { display: flex; gap: 32px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--rule-2); flex-wrap: wrap; }
+  .meta-item .meta-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 4px; }
+  .meta-item .meta-value { font-size: 14px; color: var(--ink); font-weight: 500; }
 
-  /* ── Section header ──────────────────────────────────────────── */
-  .section {
-    margin-top: 48px;
-  }
-  .section-head {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 20px;
-  }
-  .section-num {
-    font-family: 'Instrument Serif', serif;
-    font-size: 18px;
-    color: var(--ink-3);
-    font-style: italic;
-  }
-  .section-title {
-    font-family: 'Instrument Serif', serif;
-    font-size: 28px;
-    font-weight: 400;
-    letter-spacing: -.01em;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .section-rule {
-    flex: 1;
-    min-width: 24px;
-    height: 1px;
-    background: var(--rule);
-    align-self: center;
-    margin-left: 6px;
-  }
+  .section { margin-top: 48px; }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; }
+  .section-num { font-family: 'Instrument Serif', serif; font-size: 18px; color: var(--ink-3); font-style: italic; }
+  .section-title { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; letter-spacing: -.01em; white-space: nowrap; flex-shrink: 0; }
+  .section-rule { flex: 1; min-width: 24px; height: 1px; background: var(--rule); align-self: center; margin-left: 6px; }
 
-  /* ── Current state ───────────────────────────────────────────── */
-  .current {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 36px;
-    align-items: start;
-  }
-  .current-summary {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    line-height: 1.35;
-    letter-spacing: -.005em;
-    color: var(--ink);
-  }
-  .current-summary strong {
-    font-weight: 400;
-    background: linear-gradient(transparent 62%, var(--accent-soft) 62%);
-    padding: 0 2px;
-  }
+  .current { display: grid; grid-template-columns: 1.3fr 1fr; gap: 36px; align-items: start; }
+  .current-summary { font-family: 'Instrument Serif', serif; font-size: 22px; line-height: 1.35; letter-spacing: -.005em; color: var(--ink); }
+  .current-summary strong { font-weight: 400; background: linear-gradient(transparent 62%, var(--accent-soft) 62%); padding: 0 2px; }
   .current-summary em { font-style: italic; color: var(--ink-2); }
-
-  .current-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 24px;
-    border-left: 1px solid var(--rule);
-    padding-left: 32px;
-  }
-  .stat-label {
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 3px;
-  }
-  .stat-value {
-    font-size: 15px;
-    color: var(--ink);
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
+  .current-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; border-left: 1px solid var(--rule); padding-left: 32px; }
+  .stat-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 3px; }
+  .stat-value { font-size: 15px; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
   .stat-value .unit { color: var(--ink-3); font-weight: 400; font-size: 13px; }
 
-  /* ── Recommendation strip ────────────────────────────────────── */
-  .recommendation {
-    margin-top: 40px;
-    background: var(--paper-2);
-    border: 1px solid var(--rule);
-    padding: 26px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-  }
-  .rec-text {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    line-height: 1.35;
-    letter-spacing: -.005em;
-  }
-  .rec-text .rec-eyebrow {
-    display: block;
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .rec-text strong {
-    font-weight: 400;
-    background: linear-gradient(transparent 62%, var(--accent-soft) 62%);
-    padding: 0 4px;
-  }
-  .rec-pill {
-    flex-shrink: 0;
-    padding: 8px 14px;
-    border: 1px solid var(--ink);
-    border-radius: 999px;
-    font-size: 11px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    font-weight: 600;
-    white-space: nowrap;
-  }
+  .recommendation { margin-top: 40px; background: var(--paper-2); border: 1px solid var(--rule); padding: 26px 32px; display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+  .rec-text { font-family: 'Instrument Serif', serif; font-size: 22px; line-height: 1.35; letter-spacing: -.005em; }
+  .rec-text .rec-eyebrow { display: block; font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 6px; }
+  .rec-text strong { font-weight: 400; background: linear-gradient(transparent 62%, var(--accent-soft) 62%); padding: 0 4px; }
+  .rec-pill { flex-shrink: 0; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 999px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; white-space: nowrap; }
 
-  /* ── Options ──────────────────────────────────────────────────── */
-  .options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 4px;
-  }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 4px; }
+  .options.three-up { grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-left: -48px; margin-right: -48px; }
+  .options.three-up .option { padding: 22px 18px 20px; gap: 14px; }
+  .options.three-up .option-name { font-size: 22px; }
+  .options.three-up .hero-amount { font-size: 48px; }
+  .options.three-up .hero-amount .currency { font-size: 26px; vertical-align: 10px; }
+  .options.three-up .hero-trio-value { font-size: 20px; }
+  .options.three-up .hero-trio-label { font-size: 8px; }
+  .options.three-up .li-label { font-size: 12px; }
+  .options.three-up .li-amount { font-size: 12px; }
+  .options.three-up .li-sub { font-size: 10.5px; }
+  .options.three-up .savings-callout { padding: 10px 12px; }
+  .options.three-up .sc-amount { font-size: 18px; }
+  .options.three-up .increase-callout { padding: 10px 12px; }
+  .options.three-up .ic-amount { font-size: 18px; }
+  .option { background: var(--paper); border: 1px solid var(--rule); padding: 28px 28px 24px; position: relative; display: flex; flex-direction: column; gap: 18px; }
+  .option.featured { border: 1.5px solid var(--ink); background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%); }
+  .option-tag { position: absolute; top: -10px; left: 24px; background: var(--ink); color: var(--paper); padding: 4px 12px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; white-space: nowrap; line-height: 1.3; }
+  .option-tag.muted { background: var(--paper); color: var(--ink-3); border: 1px solid var(--rule); }
+  .option-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--rule-2); }
+  .option-name { font-family: 'Instrument Serif', serif; font-size: 26px; letter-spacing: -.01em; font-weight: 400; }
+  .option-term { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
 
-  .option {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    padding: 28px 28px 24px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-  .option.featured {
-    border: 1.5px solid var(--ink);
-    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%);
-  }
-  .option-tag {
-    position: absolute;
-    top: -10px; left: 24px;
-    background: var(--ink);
-    color: var(--paper);
-    padding: 4px 12px;
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    font-weight: 600;
-    white-space: nowrap;
-    line-height: 1.3;
-  }
-  .option-tag.muted {
-    background: var(--paper);
-    color: var(--ink-3);
-    border: 1px solid var(--rule);
-  }
-
-  .option-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--rule-2);
-  }
-  .option-name {
-    font-family: 'Instrument Serif', serif;
-    font-size: 26px;
-    letter-spacing: -.01em;
-    font-weight: 400;
-  }
-  .option-term {
-    font-size: 11px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-  }
-
-  /* Hero numbers */
-  .hero-stack {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
+  .hero-stack { display: grid; grid-template-columns: 1fr; gap: 18px; }
   .hero-primary { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  .hero-amount {
-    font-family: 'Instrument Serif', serif;
-    font-size: 68px;
-    line-height: .92;
-    letter-spacing: -.025em;
-    font-weight: 400;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-  .hero-amount .currency {
-    font-size: 36px;
-    vertical-align: 14px;
-    color: var(--ink-2);
-    margin-right: 2px;
-  }
-  .hero-period {
-    font-size: 12px;
-    color: var(--ink-3);
-    font-weight: 500;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    padding-bottom: 10px;
-    white-space: nowrap;
-  }
+  .hero-amount { font-family: 'Instrument Serif', serif; font-size: 68px; line-height: .92; letter-spacing: -.025em; font-weight: 400; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hero-amount .currency { font-size: 36px; vertical-align: 14px; color: var(--ink-2); margin-right: 2px; }
+  .hero-period { font-size: 12px; color: var(--ink-3); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; padding-bottom: 10px; white-space: nowrap; }
 
-  .hero-trio {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0;
-    border-top: 1px solid var(--rule-2);
-    padding-top: 14px;
-  }
-  .hero-trio-cell {
-    padding: 0 12px;
-    border-right: 1px solid var(--rule-2);
-  }
+  .hero-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-top: 1px solid var(--rule-2); padding-top: 14px; }
+  .hero-trio-cell { padding: 0 12px; border-right: 1px solid var(--rule-2); }
   .hero-trio-cell:first-child { padding-left: 0; }
   .hero-trio-cell:last-child { padding-right: 0; border-right: 0; }
-  .hero-trio-label {
-    font-size: 9px;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 4px;
-    line-height: 1.2;
-    white-space: nowrap;
-  }
-  .hero-trio-value {
-    font-family: 'Instrument Serif', serif;
-    font-size: 26px;
-    line-height: 1.05;
-    letter-spacing: -.01em;
-    font-variant-numeric: tabular-nums;
-  }
+  .hero-trio-label { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 4px; line-height: 1.2; white-space: nowrap; }
+  .hero-trio-value { font-family: 'Instrument Serif', serif; font-size: 26px; line-height: 1.05; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
   .hero-trio-value.savings { color: var(--accent); }
-  .hero-trio-sub {
-    font-size: 11px;
-    color: var(--ink-3);
-    margin-top: 2px;
-    font-variant-numeric: tabular-nums;
-  }
+  .hero-trio-sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  /* Line items */
-  .lineitems {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .lineitem {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px dashed var(--rule-2);
-  }
+  .lineitems { display: flex; flex-direction: column; gap: 10px; }
+  .lineitem { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--rule-2); }
   .lineitem:last-of-type { border-bottom: 0; }
-  .li-label {
-    font-size: 13px;
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .li-sub {
-    font-size: 11.5px;
-    color: var(--ink-3);
-    margin-top: 2px;
-  }
-  .li-amount {
-    font-size: 14px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-    text-align: right;
-    white-space: nowrap;
-  }
-  .li-amount .strike {
-    text-decoration: line-through;
-    color: var(--ink-3);
-    font-weight: 400;
-    margin-right: 6px;
-  }
+  .li-label { font-size: 13px; color: var(--ink); font-weight: 500; }
+  .li-sub { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+  .li-amount { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; white-space: nowrap; }
+  .li-amount .strike { text-decoration: line-through; color: var(--ink-3); font-weight: 400; margin-right: 6px; }
 
-  /* Savings callout */
-  .savings-callout {
-    background: var(--accent-soft);
-    border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
-    padding: 14px 16px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .savings-callout .sc-label {
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .savings-callout .sc-amount {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    color: var(--accent);
-    font-weight: 400;
-    font-variant-numeric: tabular-nums;
-  }
+  .savings-callout { background: var(--accent-soft); border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent); padding: 14px 16px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .savings-callout .sc-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  .savings-callout .sc-amount { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--accent); font-weight: 400; font-variant-numeric: tabular-nums; }
 
-  /* ── Package features block ──────────────────────────────────── */
-  .pkg {
-    background: var(--paper-2);
-    border: 1px solid var(--rule);
-    padding: 28px 32px;
-  }
-  .pkg-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--rule);
-    margin-bottom: 22px;
-    flex-wrap: wrap;
-  }
-  .pkg-name {
-    font-family: 'Instrument Serif', serif;
-    font-size: 32px;
-    line-height: 1;
-    letter-spacing: -.01em;
-    margin-bottom: 4px;
-  }
-  .pkg-tagline {
-    font-size: 13px;
-    color: var(--ink-2);
-    font-style: italic;
-    font-family: 'Instrument Serif', serif;
-    font-size: 16px;
-  }
-  .pkg-allowances {
-    display: flex;
-    gap: 24px;
-  }
-  .pkg-allow-label {
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-  .pkg-allow-value {
-    font-family: 'Instrument Serif', serif;
-    font-size: 22px;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
+  /* Increase callout — neutral styling, not green */
+  .increase-callout { background: var(--paper-2); border: 1px solid var(--rule); padding: 14px 16px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .increase-callout .ic-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; }
+  .increase-callout .ic-amount { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--ink); font-weight: 400; font-variant-numeric: tabular-nums; }
 
-  .pkg-cols {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 32px;
-  }
-  .pkg-col-label {
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 600;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--rule-2);
-  }
-  .feat-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-  .feat {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    font-size: 13px;
-    line-height: 1.35;
-  }
-  .feat-check {
-    color: var(--accent);
-    flex-shrink: 0;
-    transform: translateY(2px);
-  }
-  .feat-text {
-    flex: 1;
-    min-width: 0;
-  }
-  .feat-name {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .feat-note {
-    color: var(--ink-3);
-    font-size: 11.5px;
-    font-style: italic;
-    margin-left: 2px;
-  }
-  .feat-bullet::before {
-    content: "·";
-    color: var(--ink-3);
-    margin-right: 4px;
-    font-weight: 700;
-  }
+  .pkg { background: var(--paper-2); border: 1px solid var(--rule); padding: 28px 32px; }
+  .pkg-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--rule); margin-bottom: 22px; flex-wrap: wrap; }
+  .pkg-name { font-family: 'Instrument Serif', serif; font-size: 32px; line-height: 1; letter-spacing: -.01em; margin-bottom: 4px; }
+  .pkg-tagline { font-size: 13px; color: var(--ink-2); font-style: italic; font-family: 'Instrument Serif', serif; font-size: 16px; }
+  .pkg-allowances { display: flex; gap: 24px; }
+  .pkg-allow-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 2px; }
+  .pkg-allow-value { font-family: 'Instrument Serif', serif; font-size: 22px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .pkg-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+  .pkg-col-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--rule-2); }
+  .feat-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 7px; }
+  .feat { display: flex; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.35; }
+  .feat-check { color: var(--accent); flex-shrink: 0; transform: translateY(2px); }
+  .feat-text { flex: 1; min-width: 0; }
+  .feat-name { color: var(--ink); font-weight: 500; }
+  .feat-note { color: var(--ink-3); font-size: 11.5px; font-style: italic; margin-left: 2px; }
+  .feat-bullet::before { content: "\00b7"; color: var(--ink-3); margin-right: 4px; font-weight: 700; }
 
-  /* ── Footer ───────────────────────────────────────────────────── */
-  .doc-footer {
-    margin-top: 48px;
-    padding-top: 18px;
-    border-top: 1px solid var(--rule);
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 24px;
-    font-size: 11px;
-    color: var(--ink-3);
-    letter-spacing: .04em;
-  }
-  .doc-footer .signoff {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    font-size: 14px;
-    color: var(--ink-2);
-    letter-spacing: 0;
-  }
+  .doc-footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 24px; font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
+  .doc-footer .signoff { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 14px; color: var(--ink-2); letter-spacing: 0; }
 
-  /* ── Density variants ────────────────────────────────────────── */
   body[data-density="compact"] .page-inner { padding: 40px 48px 36px; }
   body[data-density="compact"] .doc-title { font-size: 52px; }
   body[data-density="compact"] .section { margin-top: 36px; }
@@ -600,13 +164,11 @@
   body[data-density="compact"] .recommendation { padding: 20px 26px; }
   body[data-density="compact"] .rec-text { font-size: 18px; }
   body[data-density="compact"] .current-summary { font-size: 18px; }
-
   body[data-density="comfy"] .page-inner { padding: 72px 80px 60px; }
   body[data-density="comfy"] .doc-title { font-size: 76px; }
   body[data-density="comfy"] .section { margin-top: 60px; }
   body[data-density="comfy"] .hero-amount { font-size: 78px; }
 
-  /* ── Print ────────────────────────────────────────────────────── */
   @page { size: letter; margin: 0; }
   @media print {
     html, body { background: var(--paper); }
@@ -616,14 +178,13 @@
     .page + .page { margin-top: 0; page-break-before: always; }
     [data-noncommentable], .twk-panel { display: none !important; }
   }
-
-  /* small screens fallback */
   @media (max-width: 720px) {
     .page-inner { padding: 36px 28px 32px; }
     .doc-title { font-size: 44px; }
     .current { grid-template-columns: 1fr; gap: 24px; }
     .current-stats { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 18px; }
     .options { grid-template-columns: 1fr; }
+    .options.three-up { grid-template-columns: 1fr; }
     .recommendation { flex-direction: column; align-items: flex-start; }
     .meta-row { gap: 18px; }
     .hero-amount { font-size: 56px; }
@@ -633,10 +194,317 @@
 <body>
   <div id="root"></div>
 
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-  <script type="text/babel" src="tweaks-panel.jsx"></script>
-  <script type="text/babel" src="renewal.jsx"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+  <script type="text/babel">
+// ── tweaks-panel.jsx (inlined) ──────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `.twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;background:rgba(250,249,247,.78);color:#29261b;-webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);border:.5px solid rgba(255,255,255,.6);border-radius:14px;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}.twk-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 8px 10px 14px;cursor:move;user-select:none}.twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}.twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}.twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}.twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}.twk-body::-webkit-scrollbar{width:8px}.twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}.twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;border:2px solid transparent;background-clip:content-box}.twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);border:2px solid transparent;background-clip:content-box}.twk-row{display:flex;flex-direction:column;gap:5px}.twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}.twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}.twk-lbl>span:first-child{font-weight:500}.twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}.twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(41,38,27,.45);padding:10px 0 0}.twk-sect:first-child{padding-top:0}.twk-field{appearance:none;width:100%;height:26px;padding:0 8px;border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}.twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}select.twk-field{padding-right:22px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");background-repeat:no-repeat;background-position:right 8px center}.twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;background:rgba(0,0,0,.06);user-select:none}.twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}.twk-seg.dragging .twk-seg-thumb{transition:none}.twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;overflow-wrap:anywhere}.twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}.twk-toggle[data-on="1"]{background:#34c759}.twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}.twk-toggle[data-on="1"] i{transform:translateX(14px)}.twk-num{display:flex;align-items:center;height:26px;padding:0 0 0 8px;border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}.twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;outline:none;color:inherit;-moz-appearance:textfield}.twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}.twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;user-select:none;padding-right:8px}.twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}.twk-btn:hover{background:rgba(0,0,0,.88)}`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(true);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current; if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = { x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)), y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)) };
+    panel.style.right = offsetRef.current.x + 'px'; panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+  React.useEffect(() => { if (!open) return; clampToViewport(); window.addEventListener('resize', clampToViewport); return () => window.removeEventListener('resize', clampToViewport); }, [open, clampToViewport]);
+  const onDragStart = (e) => {
+    const panel = dragRef.current; if (!panel) return;
+    const r = panel.getBoundingClientRect(); const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right; const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => { offsetRef.current = { x: startRight - (ev.clientX - sx), y: startBottom - (ev.clientY - sy) }; clampToViewport(); };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+  };
+  if (!open) return (<><style>{__TWEAKS_STYLE + `.twk-fab{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.78);color:#fff;font-size:18px;cursor:default;box-shadow:0 4px 12px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}.twk-fab:hover{background:rgba(0,0,0,.9)}@media print{.twk-fab{display:none!important}}`}</style><button className="twk-fab" data-noncommentable="" onClick={() => setOpen(true)} aria-label="Open tweaks" title="Tweaks">&#x2699;</button></>);
+  return (<><style>{__TWEAKS_STYLE}</style><div ref={dragRef} className="twk-panel" data-noncommentable="" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}><div className="twk-hd" onMouseDown={onDragStart}><b>{title}</b><button className="twk-x" aria-label="Close tweaks" onMouseDown={(e) => e.stopPropagation()} onClick={() => setOpen(false)}>&#x2715;</button></div><div className="twk-body">{children}</div></div></>);
+}
+
+function TweakSection({ label, children }) { return (<><div className="twk-sect">{label}</div>{children}</>); }
+function TweakRow({ label, value, children }) { return (<div className="twk-row"><div className="twk-lbl"><span>{label}</span>{value != null && <span className="twk-val">{value}</span>}</div>{children}</div>); }
+function TweakToggle({ label, value, onChange }) { return (<div className="twk-row twk-row-h"><div className="twk-lbl"><span>{label}</span></div><button type="button" className="twk-toggle" data-on={value ? '1' : '0'} role="switch" aria-checked={!!value} onClick={() => onChange(!value)}><i /></button></div>); }
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null); const [dragging, setDragging] = React.useState(false);
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value)); const n = opts.length;
+  const valueRef = React.useRef(value); valueRef.current = value;
+  const segAt = (clientX) => { const r = trackRef.current.getBoundingClientRect(); const inner = r.width - 4; const i = Math.floor(((clientX - r.left - 2) / inner) * n); return opts[Math.max(0, Math.min(n - 1, i))].value; };
+  const onPointerDown = (e) => { setDragging(true); const v0 = segAt(e.clientX); if (v0 !== valueRef.current) onChange(v0); const move = (ev) => { if (!trackRef.current) return; const v = segAt(ev.clientX); if (v !== valueRef.current) onChange(v); }; const up = () => { setDragging(false); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); };
+  return (<TweakRow label={label}><div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown} className={dragging ? 'twk-seg dragging' : 'twk-seg'}><div className="twk-seg-thumb" style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`, width: `calc((100% - 4px) / ${n})` }} />{opts.map((o) => (<button key={o.value} type="button" role="radio" aria-checked={o.value === value}>{o.label}</button>))}</div></TweakRow>);
+}
+function TweakSelect({ label, value, options, onChange }) { return (<TweakRow label={label}><select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>{options.map((o) => { const v = typeof o === 'object' ? o.value : o; const l = typeof o === 'object' ? o.label : o; return <option key={v} value={v}>{l}</option>; })}</select></TweakRow>); }
+function TweakText({ label, value, placeholder, onChange }) { return (<TweakRow label={label}><input className="twk-field" type="text" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} /></TweakRow>); }
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => { if (isNaN(n)) return value; if (min != null && n < min) return min; if (max != null && n > max) return max; return n; };
+  const [draft, setDraft] = React.useState(String(value));
+  React.useEffect(() => { setDraft(String(value)); }, [value]);
+  const commit = () => { const n = clamp(Number(draft)); onChange(n); setDraft(String(n)); };
+  return (<div className="twk-num"><span className="twk-num-lbl">{label}</span><input type="text" inputMode="decimal" value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} />{unit && <span className="twk-num-unit">{unit}</span>}</div>);
+}
+function TweakButton({ label, onClick }) { return (<button type="button" className="twk-btn" onClick={onClick}>{label}</button>); }
+
+// ── renewal.jsx (inlined) ───────────────────────────────────────────────────
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{"tone":"polished","density":"regular","highlighted":"two_year","showCurrentDetail":true,"pricingMode":"increase","pctMonthly":23,"pctAnnual":5,"pctTwoYear":2.5,"showUpfront":false,"upfrontPct":10,"preparedBy":"Aaron Rampersad, Head of CS","contractEnd":"","showMonthly":true,"showAnnual":true,"showTwoYear":true}/*EDITMODE-END*/;
+
+const DATA = {
+  customer: { name: "The Feed", generated: "April 30, 2026", contact: "Aaron Rampersad, Head of CS" },
+  current: { plan: "Current Plan", planDetail: "5,000 UGC + API add-on", mrr: 2990, arr: 35880, ugcLimit: 15000, seats: 10, workspaces: 1 },
+  recommended: { tier: "Growth", addOns: 4, listMonthly: 2500 },
+  packageFeatures: {
+    name: "Growth", tagline: "For mid-market teams scaling UGC + measurement", ugcLimit: "2,500/mo", credits: "70,000/mo",
+    features: ["Social Listening","Reports","Impressions + EMV","Campaigns","Creator Search","UGC Super Search",{name:"Competitor Insights",note:"discovery + benchmarking"},"Whitelisting + Usage Rights","API Access"],
+    creditsBased: ["Audience Data","Campaign Refresh","Deep Research","Archive Radar",{name:"Magic Fields",note:"up to 3"},"AI Sentiment Analysis"],
+    addOns: ["UGC Packs","Credit Packs","Extra Competitors"]
+  },
+  options: {
+    annual: { term: "1-Year Commitment", basePrice: 1350, baseList: 1500, baseDiscount: 10, addOnPrice: 225, addOnList: 250, addOnPacks: 4, monthly: 2250, annual: 27000, savingsAnnual: 8880, savingsPct: 25 },
+    twoYear: { term: "2-Year Commitment", basePrice: 1200, baseList: 1500, baseDiscount: 20, addOnPrice: 200, addOnList: 250, addOnPacks: 4, monthly: 2000, annual: 24000, contractTotal: 48000, savingsAnnual: 11880, savingsPct: 33 }
+  }
+};
+
+const TONE_COPY = {
+  polished: {
+    eyebrow: "Renewal Overview",
+    title: <React.Fragment>Your renewal,<br /><em>right-sized.</em></React.Fragment>,
+    sub: "We\u2019ve reviewed your account and prepared your renewal options for the next term.",
+    summaryLead: (<React.Fragment>Based on a review of <strong>The Feed</strong>&rsquo;s account, the renewal options below align your plan for your team&rsquo;s next term.</React.Fragment>),
+    recEyebrow: "Recommended tier",
+    recText: (<React.Fragment>Based on usage patterns, <strong>Growth + 4 UGC packs</strong> is the right shape for The Feed&rsquo;s next term.</React.Fragment>),
+    recPill: "Growth Tier",
+    signoff: "Prepared with care by your CSM.",
+    // Increase-mode overrides
+    titleIncrease: <React.Fragment>Your renewal,<br /><em>continued.</em></React.Fragment>,
+    subIncrease: "We\u2019ve prepared your renewal with updated pricing for the next term.",
+    summaryLeadIncrease: (<React.Fragment><strong>The Feed</strong>&rsquo;s renewal options below reflect updated pricing for your next commitment period.</React.Fragment>),
+    recTextIncrease: (<React.Fragment>We recommend <strong>Growth</strong> for the best fit and maximum value for The Feed&rsquo;s next term.</React.Fragment>),
+    recPillIncrease: "Growth Tier",
+  },
+  neutral: {
+    eyebrow: "Renewal Overview",
+    title: <React.Fragment>Renewal options<br /><em>for The Feed.</em></React.Fragment>,
+    sub: "Two contract structures, priced for the next term.",
+    summaryLead: (<React.Fragment>The options below resize <strong>The Feed</strong>&rsquo;s plan for the next term.</React.Fragment>),
+    recEyebrow: "Recommended tier",
+    recText: (<React.Fragment><strong>Growth + 4 UGC packs</strong> is the best fit and maximum value for The Feed.</React.Fragment>),
+    recPill: "Growth Tier",
+    signoff: "\u2014",
+    titleIncrease: <React.Fragment>Renewal options<br /><em>for The Feed.</em></React.Fragment>,
+    subIncrease: "Two contract structures for the next term.",
+    summaryLeadIncrease: (<React.Fragment>The options below reflect <strong>The Feed</strong>&rsquo;s updated pricing for the next term.</React.Fragment>),
+    recTextIncrease: (<React.Fragment>We recommend <strong>Growth</strong> for the best fit and maximum value for The Feed&rsquo;s next term.</React.Fragment>),
+    recPillIncrease: "Growth Tier",
+  },
+  advisory: {
+    eyebrow: "A note on your renewal",
+    title: <React.Fragment>Let&rsquo;s get you<br /><em>on the right plan.</em></React.Fragment>,
+    sub: "We took a look at your account. Here\u2019s what we\u2019d recommend, and what it would save you.",
+    summaryLead: (<React.Fragment>Both renewal options below put <strong>The Feed</strong> on a tier that fits how your team works today.</React.Fragment>),
+    recEyebrow: "Our recommendation",
+    recText: (<React.Fragment>We&rsquo;d put you on <strong>Growth with 4 UGC packs</strong> for the best fit and maximum value.</React.Fragment>),
+    recPill: "Growth Tier",
+    signoff: "Happy to walk through any of this on a call.",
+    titleIncrease: <React.Fragment>Let&rsquo;s lock in<br /><em>your next term.</em></React.Fragment>,
+    subIncrease: "Here are your renewal options with updated pricing.",
+    summaryLeadIncrease: (<React.Fragment>The options below reflect <strong>The Feed</strong>&rsquo;s updated pricing for the next term.</React.Fragment>),
+    recTextIncrease: (<React.Fragment>We recommend <strong>Growth</strong> for the best fit and maximum value for The Feed&rsquo;s next term.</React.Fragment>),
+    recPillIncrease: "Growth Tier",
+  },
+};
+
+const fmt = (n) => n.toLocaleString("en-US");
+const money = (n) => n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+function HeroAmount({ amount, period }) { return (<div className="hero-primary"><div className="hero-amount"><span className="currency">$</span>{money(amount)}</div><div className="hero-period">{period}</div></div>); }
+function HeroTrio({ items }) { return (<div className="hero-trio">{items.map((it, i) => (<div className="hero-trio-cell" key={i}><div className="hero-trio-label">{it.label}</div><div className={`hero-trio-value ${it.savings ? "savings" : ""}`}>{it.value}</div>{it.sub && <div className="hero-trio-sub">{it.sub}</div>}</div>))}</div>); }
+
+// Usage-based option card (shows savings in green)
+function OptionCard({ data, featured, term, name, tag }) {
+  return (
+    <div className={`option ${featured ? "featured" : ""}`}>
+      {tag && <div className={`option-tag ${featured ? "" : "muted"}`}>{tag}</div>}
+      <div className="option-head"><div className="option-name">{name}</div><div className="option-term">{term}</div></div>
+      <div className="hero-stack">
+        <HeroAmount amount={data.monthly} period="per month" />
+        <HeroTrio items={[
+          { label: "Annual price", value: <>${money(data.annual)}</>, sub: data.contractTotal ? `$${money(data.contractTotal)} total` : null },
+          { label: "You save", value: <>${money(data.savingsAnnual)}</>, sub: "per year", savings: true },
+          { label: "Reduction", value: <>{data.savingsPct}%</>, sub: "vs current spend", savings: true }
+        ]} />
+      </div>
+      <div className="lineitems">
+        <div className="lineitem"><div><div className="li-label">Growth plan</div><div className="li-sub">{data.baseDiscount}% commitment discount</div></div><div className="li-amount"><span className="strike">${money(data.baseList)}</span>${money(data.basePrice)}/mo</div></div>
+        <div className="lineitem"><div><div className="li-label">{data.addOnPacks} UGC add-on packs</div><div className="li-sub">{data.baseDiscount}% commitment discount</div></div><div className="li-amount"><span className="strike">${money(data.addOnList * data.addOnPacks)}</span>${money(data.addOnPrice * data.addOnPacks)}/mo</div></div>
+        <div className="lineitem"><div><div className="li-label" style={{fontWeight:600}}>{fmt(2500 + data.addOnPacks * 500)} UGC/mo total</div><div className="li-sub">2,500 base + {fmt(data.addOnPacks * 500)} from add-ons</div></div><div className="li-amount"></div></div>
+      </div>
+      <div className="savings-callout"><div><div className="sc-label">Annual savings</div></div><div className="sc-amount">${money(data.savingsAnnual)}</div></div>
+    </div>
+  );
+}
+
+// Increase option card (no savings framing, neutral callout)
+function IncreaseCard({ monthly, annual, contractTotal, featured, name, term, tag, currentMrr, subLabel, upfront, upfrontPct }) {
+  const termLabel = contractTotal ? "2-Year" : (name === "Monthly" ? "None" : "1-Year");
+  return (
+    <div className={`option ${featured ? "featured" : ""}`}>
+      {tag && <div className={`option-tag ${typeof tag === 'string' ? (featured ? "" : "muted") : "muted"}`}>{typeof tag === 'object' ? tag.props.children : tag}</div>}
+      <div className="option-head"><div className="option-name">{name}</div><div className="option-term">{term}</div></div>
+      <div className="hero-stack">
+        <HeroAmount amount={monthly} period="per month" />
+        <HeroTrio items={[
+          { label: "Annual cost", value: <>${money(annual)}</> },
+          { label: "Commitment", value: termLabel },
+          { label: "Billing", value: "Monthly" }
+        ]} />
+      </div>
+      <div className="lineitems">
+        <div className="lineitem"><div><div className="li-label">{DATA.recommended.tier} Plan</div><div className="li-sub">{DATA.packageFeatures.ugcLimit} UGC &middot; {DATA.recommended.tier} Features</div></div><div className="li-amount">${money(monthly)}<span className="unit">/mo</span></div></div>
+      </div>
+      <div style={{marginTop:"auto"}} />
+      {upfront && upfront.enabled ? (
+        <React.Fragment>
+          <div className="increase-callout"><div><div className="ic-label">Annual cost</div></div><div className="ic-amount">${money(annual)}<span className="unit"> /yr</span></div></div>
+          <div className="savings-callout"><div><div className="sc-label">Pay upfront ({upfrontPct || 10}% off)</div></div><div className="sc-amount">${money(upfront.amount)}<span className="unit"> /yr</span></div></div>
+        </React.Fragment>
+      ) : (
+        <div className="increase-callout"><div><div className="ic-label">Annual cost</div></div><div className="ic-amount">${money(annual)}<span className="unit"> /yr</span></div></div>
+      )}
+    </div>
+  );
+}
+
+function FeatureItem({ item }) { const isObj = typeof item === "object"; const name = isObj ? item.name : item; const note = isObj ? item.note : null; return (<li className="feat"><span className="feat-check" aria-hidden="true"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></span><span className="feat-text"><span className="feat-name">{name}</span>{note && <span className="feat-note"> ({note})</span>}</span></li>); }
+
+function PackageFeatures({ pkg }) { return (<div className="pkg"><div className="pkg-head"><div><div className="pkg-name">{pkg.name}</div><div className="pkg-tagline">{pkg.tagline}</div></div><div className="pkg-allowances"><div className="pkg-allow"><div className="pkg-allow-label">UGC Limit</div><div className="pkg-allow-value">{pkg.ugcLimit}</div></div><div className="pkg-allow"><div className="pkg-allow-label">Credits</div><div className="pkg-allow-value">{pkg.credits}</div></div></div></div><div className="pkg-cols"><div className="pkg-col"><div className="pkg-col-label">Features</div><ul className="feat-list">{pkg.features.map((f, i) => <FeatureItem key={i} item={f} />)}</ul></div><div className="pkg-col"><div className="pkg-col-label">Credits-based</div><ul className="feat-list">{pkg.creditsBased.map((f, i) => <FeatureItem key={i} item={f} />)}</ul></div><div className="pkg-col"><div className="pkg-col-label">Available add-ons</div><ul className="feat-list feat-list-bullets">{pkg.addOns.map((f, i) => <li key={i} className="feat feat-bullet"><span className="feat-name">{f}</span></li>)}</ul></div></div></div>); }
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const copy = TONE_COPY[t.tone] || TONE_COPY.polished;
+  React.useEffect(() => { document.body.dataset.density = t.density; }, [t.density]);
+  const c = DATA.current;
+  const annualHighlighted = t.highlighted === "annual";
+  const isIncrease = t.pricingMode === "increase";
+
+  // Increase-mode: each option has its own CSM-controlled %
+  const incMonthlyRate = Math.round(c.mrr * (1 + t.pctMonthly / 100));
+  const incMonthlyAnnualized = incMonthlyRate * 12;
+  const incAnnualMonthly = Math.round(c.mrr * (1 + t.pctAnnual / 100));
+  const incAnnualAnnual = incAnnualMonthly * 12;
+  const incTwoYearMonthly = Math.round(c.mrr * (1 + t.pctTwoYear / 100));
+  const incTwoYearAnnual = incTwoYearMonthly * 12;
+  const incTwoYearTotal = incTwoYearAnnual * 2;
+  // Upfront payment discount (configurable %)
+  const showUpfront = t.showUpfront;
+  const upfrontDiscount = t.upfrontPct / 100;
+  const upfrontAnnual = { enabled: showUpfront, amount: Math.round(incAnnualAnnual * (1 - upfrontDiscount)) };
+  const upfrontTwoYear = { enabled: showUpfront, amount: Math.round(incTwoYearAnnual * (1 - upfrontDiscount)) };
+  // Card visibility
+  const visibleCards = [t.showMonthly && "monthly", t.showAnnual && "annual", t.showTwoYear && "twoyear"].filter(Boolean);
+  const cardCount = visibleCards.length;
+
+  // Pick tone copy based on mode
+  const activeTitle = isIncrease ? (copy.titleIncrease || copy.title) : copy.title;
+  const activeSub = isIncrease ? (copy.subIncrease || copy.sub) : copy.sub;
+  const activeSummary = isIncrease ? (copy.summaryLeadIncrease || copy.summaryLead) : copy.summaryLead;
+  const activeRecText = isIncrease ? (copy.recTextIncrease || copy.recText) : copy.recText;
+  const activeRecPill = isIncrease ? (copy.recPillIncrease || copy.recPill) : copy.recPill;
+
+  return (
+    <React.Fragment>
+      <div className="page"><div className="page-inner">
+        <div className="brand"><div className="brand-mark"><div className="brand-glyph" aria-hidden="true"></div><div className="brand-name">Archive</div></div><div className="brand-meta">For {DATA.customer.name} &middot; {DATA.customer.generated}</div></div>
+        <div className="eyebrow">{copy.eyebrow}</div>
+        <h1 className="doc-title">{activeTitle}</h1>
+        <p className="doc-sub">{activeSub}</p>
+        <div className="meta-row"><div className="meta-item"><div className="meta-label">Customer</div><div className="meta-value">{DATA.customer.name}</div></div><div className="meta-item"><div className="meta-label">Prepared by</div><div className="meta-value">{t.preparedBy}</div></div><div className="meta-item"><div className="meta-label">Date</div><div className="meta-value">{DATA.customer.generated}</div></div>{t.contractEnd && <div className="meta-item"><div className="meta-label">Contract ends</div><div className="meta-value">{t.contractEnd}</div></div>}</div>
+
+        <section className="section"><div className="section-head"><span className="section-num">01</span><h2 className="section-title">Where you are today</h2><span className="section-rule"></span></div>
+          <div className="current"><p className="current-summary">{activeSummary}</p>
+            {t.showCurrentDetail && <div className="current-stats"><div><div className="stat-label">Current plan</div><div className="stat-value">{c.plan}</div></div><div><div className="stat-label">Annual spend</div><div className="stat-value">${fmt(c.arr)}<span className="unit"> /yr</span></div></div><div><div className="stat-label">UGC limit</div><div className="stat-value">{fmt(c.ugcLimit)}</div></div><div><div className="stat-label">Active seats</div><div className="stat-value">{c.seats}<span className="unit"> &middot; 90d</span></div></div><div><div className="stat-label">Workspaces</div><div className="stat-value">{c.workspaces}</div></div></div>}
+          </div>
+        </section>
+
+        <section className="section"><div className="section-head"><span className="section-num">02</span><h2 className="section-title">Our recommendation</h2><span className="section-rule"></span></div>
+          <div className="recommendation"><div className="rec-text"><span className="rec-eyebrow">{copy.recEyebrow}</span>{activeRecText}</div><div className="rec-pill">{activeRecPill}</div></div>
+        </section>
+
+        <section className="section"><div className="section-head"><span className="section-num">03</span><h2 className="section-title">What&rsquo;s included</h2><span className="section-rule"></span></div>
+          <PackageFeatures pkg={DATA.packageFeatures} />
+        </section>
+
+        <section className="section"><div className="section-head"><span className="section-num">04</span><h2 className="section-title">{cardCount === 1 ? "Your renewal" : cardCount === 2 ? "Two ways to renew" : "Three ways to renew"}</h2><span className="section-rule"></span></div>
+          <div className={isIncrease && cardCount === 3 ? "options three-up" : "options"}>
+            {isIncrease ? (
+              <React.Fragment>
+                {t.showMonthly && <IncreaseCard monthly={incMonthlyRate} annual={incMonthlyAnnualized} featured={false} name="Monthly" term="No Commitment" tag={<span className="muted">Flexible</span>} currentMrr={c.mrr} subLabel="Month-to-month, cancel anytime" upfrontPct={t.upfrontPct} />}
+                {t.showAnnual && <IncreaseCard monthly={incAnnualMonthly} annual={incAnnualAnnual} featured={true} name="Annual" term="1-Year Commitment" tag="Recommended" currentMrr={c.mrr} subLabel="Billed monthly, 1-year term" upfront={upfrontAnnual} upfrontPct={t.upfrontPct} />}
+                {t.showTwoYear && <IncreaseCard monthly={incTwoYearMonthly} annual={incTwoYearAnnual} contractTotal={incTwoYearTotal} featured={false} name="Biennial" term="2-Year Commitment" tag={<span className="muted">Best value</span>} currentMrr={c.mrr} subLabel="Billed monthly, 2-year term" upfront={upfrontTwoYear} upfrontPct={t.upfrontPct} />}
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <OptionCard data={DATA.options.annual} featured={annualHighlighted} name="Annual" term="1-Year Commitment" tag={annualHighlighted ? "Recommended" : "Option A"} />
+                <OptionCard data={DATA.options.twoYear} featured={!annualHighlighted} name="Biennial" term="2-Year Commitment" tag={!annualHighlighted ? "Best value" : "Option B"} />
+              </React.Fragment>
+            )}
+          </div>
+        </section>
+
+        <div className="doc-footer"><div className="signoff">{copy.signoff}</div><div>Archive &nbsp;&middot;&nbsp; Prepared {DATA.customer.generated} &nbsp;&middot;&nbsp; Pricing valid 30 days</div></div>
+      </div></div>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Pricing">
+          <TweakRadio label="Mode" value={t.pricingMode} options={[{value:"usage",label:"Usage-based"},{value:"increase",label:"Increase"}]} onChange={(v) => setTweak("pricingMode", v)} />
+          {t.pricingMode === "increase" && (
+            <React.Fragment>
+              <TweakNumber label="Monthly %" value={t.pctMonthly} min={0} max={100} step={1} unit="%" onChange={(v) => setTweak("pctMonthly", v)} />
+              <TweakNumber label="Annual %" value={t.pctAnnual} min={0} max={100} step={1} unit="%" onChange={(v) => setTweak("pctAnnual", v)} />
+              <TweakNumber label="2-Year %" value={t.pctTwoYear} min={0} max={100} step={0.5} unit="%" onChange={(v) => setTweak("pctTwoYear", v)} />
+              <TweakToggle label="Pay-upfront discount" value={t.showUpfront} onChange={(v) => setTweak("showUpfront", v)} />
+              {t.showUpfront && <TweakNumber label="Upfront discount" value={t.upfrontPct} min={1} max={30} step={1} unit="%" onChange={(v) => setTweak("upfrontPct", v)} />}
+            </React.Fragment>
+          )}
+        </TweakSection>
+        <TweakSection label="Cards">
+          {t.pricingMode === "increase" && <React.Fragment>
+            <TweakToggle label="Monthly" value={t.showMonthly} onChange={(v) => setTweak("showMonthly", v)} />
+            <TweakToggle label="Annual" value={t.showAnnual} onChange={(v) => setTweak("showAnnual", v)} />
+            <TweakToggle label="2-Year" value={t.showTwoYear} onChange={(v) => setTweak("showTwoYear", v)} />
+          </React.Fragment>}
+        </TweakSection>
+        <TweakSection label="Details">
+          <TweakText label="Prepared by" value={t.preparedBy} placeholder="Name, Title" onChange={(v) => setTweak("preparedBy", v)} />
+          <TweakText label="Contract ends" value={t.contractEnd} placeholder="e.g. June 30, 2026" onChange={(v) => setTweak("contractEnd", v)} />
+          <TweakToggle label="Show current-state stats" value={t.showCurrentDetail} onChange={(v) => setTweak("showCurrentDetail", v)} />
+        </TweakSection>
+        <TweakSection label="Export">
+          <TweakButton label="Print / Save as PDF" onClick={() => window.print()} />
+        </TweakSection>
+      </TweaksPanel>
+    </React.Fragment>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+  </script>
 </body>
 </html>

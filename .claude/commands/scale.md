@@ -592,125 +592,52 @@ Tell the user: **"Renewal options generated. Option A (Protect ARR) is the recom
 
 ### Step 9: Generate Renewal Overview HTML
 
-After displaying the renewal options text output, generate a polished, client-ready renewal proposal using the **Renewal Overview** design template.
+After displaying the renewal options text output, generate a polished, client-ready renewal proposal.
 
 Tell the user: **"Generating Renewal Overview..."**
 
-**The output is a single self-contained HTML file** that uses the Renewal Overview design system from `~/renewal-scaler/handoff/`. Read these reference files to understand the exact implementation:
-
-1. `handoff/SPEC.md` — hard rules (typography, palette, structure, what NOT to add)
-2. `handoff/reference/Renewal Overview.html` — reference markup + styles
-3. `handoff/reference/renewal.jsx` — React component (inline into final HTML)
-4. `handoff/reference/tweaks-panel.jsx` — Tweaks panel (inline into final HTML)
-5. `handoff/input.schema.json` — JSON schema for input data
-6. `handoff/input.example.json` — example input (The Feed data)
-
 **How to generate:**
 
-1. **Build the input JSON** from the data collected in Steps 1-8, matching `input.schema.json`:
+1. **Read the reference template** at `~/renewal-scaler/handoff/reference/Renewal Overview.html`. This is a complete, working, single-file HTML document with all CSS, React components, and the Tweaks panel already inlined. Do NOT read or use the separate `.jsx` files — everything is already in the reference HTML.
 
-```json
-{
-  "customer": {
-    "name": "[Company Name]",
-    "generated": "[Month Day, Year]",
-    "contact": "[CSM name from HubSpot company owner, or 'Aaron Rampersad, Head of CS']"
-  },
-  "current": {
-    "plan": "[Plan name from Stripe, shortened]",
-    "planDetail": "[Full plan descriptor if available]",
-    "mrr": [MRR number],
-    "arr": [ARR number],
-    "ugcLimit": [pricing_ugc_total from PostHog],
-    "seats": [active_seats from PostHog],
-    "workspaces": [count of shop IDs]
-  },
-  "recommended": {
-    "tier": "[Optimal plan name from Step 7]",
-    "addOns": [number of add-on packs],
-    "listMonthly": [undiscounted monthly total]
-  },
-  "packageFeatures": { ... },  // Use the tier-specific feature list (see below)
-  "options": {
-    "annual": { ... },   // Option B from Step 8
-    "twoYear": { ... }   // Option C from Step 8
+2. **Copy the entire reference HTML** and only change the `DATA` object and `TONE_COPY` text. Find the line that starts with `const DATA = {` and replace the values with the customer-specific data from Steps 1-8:
+
+```javascript
+const DATA = {
+  customer: { name: "[Company Name]", generated: "[Month Day, Year]", contact: "[CSM name, or 'Aaron Rampersad, Head of CS']" },
+  current: { plan: "Current Plan", planDetail: "[plan detail from Stripe]", mrr: [MRR], arr: [ARR], ugcLimit: [ugc_total from PostHog], seats: [active_seats], workspaces: [count] },
+  recommended: { tier: "[Optimal plan from Step 7]", addOns: [packs], listMonthly: [undiscounted monthly] },
+  packageFeatures: { /* use tier-specific list below */ },
+  options: {
+    annual: { term: "1-Year Commitment", basePrice: [discounted base], baseList: [list base], baseDiscount: 10, addOnPrice: [discounted addon], addOnList: 250, addOnPacks: [packs], monthly: [total monthly], annual: [monthly*12], savingsAnnual: [ARR - annual], savingsPct: [round(savings/ARR*100)] },
+    twoYear: { term: "2-Year Commitment", basePrice: [discounted base], baseList: [list base], baseDiscount: 20, addOnPrice: [discounted addon], addOnList: 250, addOnPacks: [packs], monthly: [total monthly], annual: [monthly*12], contractTotal: [monthly*24], savingsAnnual: [ARR - annual], savingsPct: [round(savings/ARR*100)] }
   }
-}
+};
 ```
 
-2. **Package features by tier** — use these canonical lists:
+3. **Update TONE_COPY** — find all references to the customer name ("The Feed") and the recommended tier/packs ("Growth + 4 UGC packs") in the `TONE_COPY` object and replace with the actual customer name and recommended package.
 
-**Growth:**
-```json
-{
-  "name": "Growth",
-  "tagline": "For mid-market teams scaling UGC + measurement",
-  "ugcLimit": "2,500/mo",
-  "credits": "70,000/mo",
-  "features": ["Social Listening", "Reports", "Impressions + EMV", "Campaigns", "Creator Search", "UGC Super Search", {"name": "Competitor Insights", "note": "discovery + benchmarking"}, "Whitelisting + Usage Rights", "API Access"],
-  "creditsBased": ["Audience Data", "Campaign Refresh", "Deep Research", "Archive Radar", {"name": "Magic Fields", "note": "up to 3"}, "AI Sentiment Analysis"],
-  "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
-}
-```
+4. **Update the `<title>` tag** to say `Renewal Overview — [Company Name]`.
 
-**Startup:**
-```json
-{
-  "name": "Startup",
-  "tagline": "For serious SMBs running gifting + creator discovery",
-  "ugcLimit": "500/mo",
-  "credits": "20,000/mo",
-  "features": ["Social Listening", "Reports", "Impressions + EMV", "Campaigns", "Creator Search", "UGC Super Search", {"name": "Competitor Insights", "note": "discovery only"}, "Whitelisting + Usage Rights", "API Access"],
-  "creditsBased": ["Audience Data", "Campaign Refresh"],
-  "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
-}
-```
+5. **Package features by tier** — use these canonical lists for `packageFeatures`:
 
-**Enterprise:**
-```json
-{
-  "name": "Enterprise",
-  "tagline": "For advanced workflows, controls, and scale",
-  "ugcLimit": "10,000/mo",
-  "credits": "150,000/mo",
-  "features": ["Social Listening", "Reports", "Impressions + EMV", "Campaigns", "Creator Search", "UGC Super Search", {"name": "Competitor Insights", "note": "discovery + benchmarking"}, {"name": "Whitelisting + Usage Rights", "note": "custom terms"}, "API Access"],
-  "creditsBased": ["Audience Data", "Campaign Refresh", "Deep Research", "Archive Radar", {"name": "Magic Fields", "note": "up to 10+"}, "AI Sentiment Analysis"],
-  "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
-}
-```
+**Startup:** `{ name: "Startup", tagline: "For serious SMBs running gifting + creator discovery", ugcLimit: "500/mo", credits: "20,000/mo", features: ["Social Listening","Reports","Impressions + EMV","Campaigns","Creator Search","UGC Super Search",{name:"Competitor Insights",note:"discovery only"},"Whitelisting + Usage Rights","API Access"], creditsBased: ["Audience Data","Campaign Refresh"], addOns: ["UGC Packs","Credit Packs","Extra Competitors"] }`
 
-3. **Map Option B and C to the schema's `annual` and `twoYear` objects:**
+**Growth:** `{ name: "Growth", tagline: "For mid-market teams scaling UGC + measurement", ugcLimit: "2,500/mo", credits: "70,000/mo", features: ["Social Listening","Reports","Impressions + EMV","Campaigns","Creator Search","UGC Super Search",{name:"Competitor Insights",note:"discovery + benchmarking"},"Whitelisting + Usage Rights","API Access"], creditsBased: ["Audience Data","Campaign Refresh","Deep Research","Archive Radar",{name:"Magic Fields",note:"up to 3"},"AI Sentiment Analysis"], addOns: ["UGC Packs","Credit Packs","Extra Competitors"] }`
 
-For each option, populate:
-- `term`: "1-Year Commitment" or "2-Year Commitment"
-- `basePrice`: discounted base monthly (e.g., 1350 for Growth annual)
-- `baseList`: list base monthly (e.g., 1500 for Growth)
-- `baseDiscount`: integer % (10 or 20)
-- `addOnPrice`: discounted add-on per pack (225 or 200)
-- `addOnList`: 250
-- `addOnPacks`: number of packs
-- `monthly`: all-in monthly total
-- `annual`: monthly × 12
-- `contractTotal`: (2-year only) monthly × 24
-- `savingsAnnual`: current ARR - annual price
-- `savingsPct`: round(savingsAnnual / current ARR × 100)
+**Enterprise:** `{ name: "Enterprise", tagline: "For advanced workflows, controls, and scale", ugcLimit: "10,000/mo", credits: "150,000/mo", features: ["Social Listening","Reports","Impressions + EMV","Campaigns","Creator Search","UGC Super Search",{name:"Competitor Insights",note:"discovery + benchmarking"},{name:"Whitelisting + Usage Rights",note:"custom terms"},"API Access"], creditsBased: ["Audience Data","Campaign Refresh","Deep Research","Archive Radar",{name:"Magic Fields",note:"up to 10+"},"AI Sentiment Analysis"], addOns: ["UGC Packs","Credit Packs","Extra Competitors"] }`
 
-4. **Inline everything into one HTML file.** Take the reference `Renewal Overview.html` as the shell. Inline `tweaks-panel.jsx` and `renewal.jsx` into `<script type="text/babel">` blocks. Replace the hardcoded `DATA` object in `renewal.jsx` with the customer-specific values. Update `TONE_COPY` text to reference the actual customer name, recommended tier, and add-on count.
+6. **Do NOT change anything else** — the CSS, React components, Tweaks panel, increase-mode logic, upfront discount, card visibility toggles, and all interactivity are already built into the reference HTML. Just swap the data.
 
-5. **Follow all SPEC.md hard rules:**
-- No tier or shop ID in the meta row
-- No UGC usage averages, utilization %, or "overpaying" framing in the rendered doc
-- Forest green for savings only
-- Strikethrough list price + discounted price on every line item
-- Exactly 4 sections: Where you are today, Our recommendation, What's included, Two ways to renew
-- Featured option gets 1.5px ink border + gradient fill + dark tag
-- Tweaks panel: tone, highlight, show-stats toggle, density, print button
-
-**Note on Option A (Protect ARR):** The Renewal Overview design shows only two options (annual + 2-year). Option A (the +5% protect-ARR pricing) is shown in the **text output** in the conversation (Step 8) but is NOT included in the client-facing HTML document. The HTML is meant to be shareable with the customer and should only show the usage-based options.
+**Rules for the rendered document:**
+- No tier or shop ID in the meta row — only Customer, Prepared by, Date (+ Contract ends if set)
+- No UGC usage averages, utilization %, or "overpaying" framing
+- `current.plan` should say "Current Plan" (not internal Stripe names)
+- The `recommended.tier` should always reference the actual plan name (Startup/Growth/Enterprise)
 
 **File output:**
 
 1. Generate the filename: `Renewal Overview - [Company Name].html`
 2. Write the file to `~/Downloads/[filename]` using the Write tool
 3. Open it in the default browser: run `open ~/Downloads/[filename]`
-4. Tell the user: **"Renewal Overview saved to ~/Downloads/[filename] and opened in your browser. Use the Tweaks panel to adjust tone, density, and which option to highlight before sharing."**
+4. Tell the user: **"Renewal Overview saved to ~/Downloads/[filename] and opened in your browser. Click the ⚙ gear icon to open the Tweaks panel."**
