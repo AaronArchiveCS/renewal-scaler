@@ -281,52 +281,55 @@ const DATA = {
   }
 };
 
+const CN = DATA.customer.name;
+const RT = DATA.recommended.tier;
+const RP = RT + (DATA.recommended.addOns > 0 ? ` + ${DATA.recommended.addOns} UGC packs` : '');
+
 const TONE_COPY = {
   polished: {
     eyebrow: "Renewal Overview",
     title: <React.Fragment>Your renewal,<br /><em>right-sized.</em></React.Fragment>,
     sub: "We\u2019ve reviewed your account and prepared your renewal options for the next term.",
-    summaryLead: (<React.Fragment>Based on a review of <strong>The Feed</strong>&rsquo;s account, the renewal options below align your plan for your team&rsquo;s next term.</React.Fragment>),
+    summaryLead: (<React.Fragment>Based on a review of <strong>{CN}</strong>&rsquo;s account, the renewal options below align your plan for your team&rsquo;s next term.</React.Fragment>),
     recEyebrow: "Recommended tier",
-    recText: (<React.Fragment>Based on usage patterns, <strong>Growth + 4 UGC packs</strong> is the right shape for The Feed&rsquo;s next term.</React.Fragment>),
-    recPill: "Growth Tier",
+    recText: (<React.Fragment>Based on usage patterns, <strong>{RP}</strong> is the right shape for {CN}&rsquo;s next term.</React.Fragment>),
+    recPill: RT + " Tier",
     signoff: "Prepared with care by your CSM.",
-    // Increase-mode overrides
     titleIncrease: <React.Fragment>Your renewal,<br /><em>continued.</em></React.Fragment>,
     subIncrease: "We\u2019ve prepared your renewal with updated pricing for the next term.",
-    summaryLeadIncrease: (<React.Fragment><strong>The Feed</strong>&rsquo;s renewal options below reflect updated pricing for your next commitment period.</React.Fragment>),
-    recTextIncrease: (<React.Fragment>We recommend <strong>Growth</strong> for the best fit and maximum value for The Feed&rsquo;s next term.</React.Fragment>),
-    recPillIncrease: "Growth Tier",
+    summaryLeadIncrease: (<React.Fragment><strong>{CN}</strong>&rsquo;s renewal options below reflect updated pricing for your next commitment period.</React.Fragment>),
+    recTextIncrease: (<React.Fragment>We recommend <strong>{RT}</strong> for the best fit and maximum value for {CN}&rsquo;s next term.</React.Fragment>),
+    recPillIncrease: RT + " Tier",
   },
   neutral: {
     eyebrow: "Renewal Overview",
-    title: <React.Fragment>Renewal options<br /><em>for The Feed.</em></React.Fragment>,
+    title: <React.Fragment>Renewal options<br /><em>for {CN}.</em></React.Fragment>,
     sub: "Two contract structures, priced for the next term.",
-    summaryLead: (<React.Fragment>The options below resize <strong>The Feed</strong>&rsquo;s plan for the next term.</React.Fragment>),
+    summaryLead: (<React.Fragment>The options below resize <strong>{CN}</strong>&rsquo;s plan for the next term.</React.Fragment>),
     recEyebrow: "Recommended tier",
-    recText: (<React.Fragment><strong>Growth + 4 UGC packs</strong> is the best fit and maximum value for The Feed.</React.Fragment>),
-    recPill: "Growth Tier",
+    recText: (<React.Fragment><strong>{RP}</strong> is the best fit and maximum value for {CN}.</React.Fragment>),
+    recPill: RT + " Tier",
     signoff: "\u2014",
-    titleIncrease: <React.Fragment>Renewal options<br /><em>for The Feed.</em></React.Fragment>,
+    titleIncrease: <React.Fragment>Renewal options<br /><em>for {CN}.</em></React.Fragment>,
     subIncrease: "Two contract structures for the next term.",
-    summaryLeadIncrease: (<React.Fragment>The options below reflect <strong>The Feed</strong>&rsquo;s updated pricing for the next term.</React.Fragment>),
-    recTextIncrease: (<React.Fragment>We recommend <strong>Growth</strong> for the best fit and maximum value for The Feed&rsquo;s next term.</React.Fragment>),
-    recPillIncrease: "Growth Tier",
+    summaryLeadIncrease: (<React.Fragment>The options below reflect <strong>{CN}</strong>&rsquo;s updated pricing for the next term.</React.Fragment>),
+    recTextIncrease: (<React.Fragment>We recommend <strong>{RT}</strong> for the best fit and maximum value for {CN}&rsquo;s next term.</React.Fragment>),
+    recPillIncrease: RT + " Tier",
   },
   advisory: {
     eyebrow: "A note on your renewal",
     title: <React.Fragment>Let&rsquo;s get you<br /><em>on the right plan.</em></React.Fragment>,
     sub: "We took a look at your account. Here\u2019s what we\u2019d recommend, and what it would save you.",
-    summaryLead: (<React.Fragment>Both renewal options below put <strong>The Feed</strong> on a tier that fits how your team works today.</React.Fragment>),
+    summaryLead: (<React.Fragment>Both renewal options below put <strong>{CN}</strong> on a tier that fits how your team works today.</React.Fragment>),
     recEyebrow: "Our recommendation",
-    recText: (<React.Fragment>We&rsquo;d put you on <strong>Growth with 4 UGC packs</strong> for the best fit and maximum value.</React.Fragment>),
-    recPill: "Growth Tier",
+    recText: (<React.Fragment>We&rsquo;d put you on <strong>{RP}</strong> for the best fit and maximum value.</React.Fragment>),
+    recPill: RT + " Tier",
     signoff: "Happy to walk through any of this on a call.",
     titleIncrease: <React.Fragment>Let&rsquo;s lock in<br /><em>your next term.</em></React.Fragment>,
     subIncrease: "Here are your renewal options with updated pricing.",
-    summaryLeadIncrease: (<React.Fragment>The options below reflect <strong>The Feed</strong>&rsquo;s updated pricing for the next term.</React.Fragment>),
-    recTextIncrease: (<React.Fragment>We recommend <strong>Growth</strong> for the best fit and maximum value for The Feed&rsquo;s next term.</React.Fragment>),
-    recPillIncrease: "Growth Tier",
+    summaryLeadIncrease: (<React.Fragment>The options below reflect <strong>{CN}</strong>&rsquo;s updated pricing for the next term.</React.Fragment>),
+    recTextIncrease: (<React.Fragment>We recommend <strong>{RT}</strong> for the best fit and maximum value for {CN}&rsquo;s next term.</React.Fragment>),
+    recPillIncrease: RT + " Tier",
   },
 };
 
