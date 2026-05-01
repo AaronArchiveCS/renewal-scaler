@@ -351,9 +351,9 @@ function OptionCard({ data, featured, term, name, tag }) {
         ]} />
       </div>
       <div className="lineitems">
-        <div className="lineitem"><div><div className="li-label">Growth plan</div><div className="li-sub">{data.baseDiscount}% commitment discount</div></div><div className="li-amount"><span className="strike">${money(data.baseList)}</span>${money(data.basePrice)}/mo</div></div>
+        <div className="lineitem"><div><div className="li-label">{DATA.recommended.tier} plan</div><div className="li-sub">{data.baseDiscount}% commitment discount</div></div><div className="li-amount"><span className="strike">${money(data.baseList)}</span>${money(data.basePrice)}/mo</div></div>
         <div className="lineitem"><div><div className="li-label">{data.addOnPacks} UGC add-on packs</div><div className="li-sub">{data.baseDiscount}% commitment discount</div></div><div className="li-amount"><span className="strike">${money(data.addOnList * data.addOnPacks)}</span>${money(data.addOnPrice * data.addOnPacks)}/mo</div></div>
-        <div className="lineitem"><div><div className="li-label" style={{fontWeight:600}}>{fmt(2500 + data.addOnPacks * 500)} UGC/mo total</div><div className="li-sub">2,500 base + {fmt(data.addOnPacks * 500)} from add-ons</div></div><div className="li-amount"></div></div>
+        <div className="lineitem"><div><div className="li-label" style={{fontWeight:600}}>{fmt(parseInt(DATA.packageFeatures.ugcLimit) + data.addOnPacks * 500)} UGC/mo total</div><div className="li-sub">{DATA.packageFeatures.ugcLimit.split('/')[0]} base + {fmt(data.addOnPacks * 500)} from add-ons</div></div><div className="li-amount"></div></div>
       </div>
       <div className="savings-callout"><div><div className="sc-label">Annual savings</div></div><div className="sc-amount">${money(data.savingsAnnual)}</div></div>
     </div>
