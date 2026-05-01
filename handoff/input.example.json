@@ -1,0 +1,76 @@
+{
+  "customer": {
+    "name": "The Feed",
+    "generated": "April 30, 2026",
+    "contact": "Annie Chen, CSM"
+  },
+  "current": {
+    "plan": "Custom Standard",
+    "planDetail": "CN5 5,000 UGC + API add-on",
+    "mrr": 2990,
+    "arr": 35880,
+    "ugcLimit": 15000,
+    "seats": 10,
+    "workspaces": 1
+  },
+  "recommended": {
+    "tier": "Growth",
+    "addOns": 3,
+    "listMonthly": 2250
+  },
+  "packageFeatures": {
+    "name": "Growth",
+    "tagline": "For mid-market teams scaling UGC + measurement",
+    "ugcLimit": "2,500/mo",
+    "credits": "70,000/mo",
+    "features": [
+      "Social Listening",
+      "Reports",
+      "Impressions + EMV",
+      "Campaigns",
+      "Creator Search",
+      "UGC Super Search",
+      { "name": "Competitor Insights", "note": "discovery + benchmarking" },
+      "Whitelisting + Usage Rights",
+      "API Access"
+    ],
+    "creditsBased": [
+      "Audience Data",
+      "Campaign Refresh",
+      "Deep Research",
+      "Archive Radar",
+      { "name": "Magic Fields", "note": "up to 3" },
+      "AI Sentiment Analysis"
+    ],
+    "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
+  },
+  "options": {
+    "annual": {
+      "term": "1-Year Commitment",
+      "basePrice": 1350,
+      "baseList": 1500,
+      "baseDiscount": 10,
+      "addOnPrice": 225,
+      "addOnList": 250,
+      "addOnPacks": 3,
+      "monthly": 2025,
+      "annual": 24300,
+      "savingsAnnual": 11580,
+      "savingsPct": 32
+    },
+    "twoYear": {
+      "term": "2-Year Commitment",
+      "basePrice": 1200,
+      "baseList": 1500,
+      "baseDiscount": 20,
+      "addOnPrice": 200,
+      "addOnList": 250,
+      "addOnPacks": 3,
+      "monthly": 1800,
+      "annual": 21600,
+      "contractTotal": 43200,
+      "savingsAnnual": 14280,
+      "savingsPct": 40
+    }
+  }
+}

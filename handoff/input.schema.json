@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RenewalOverviewInput",
+  "type": "object",
+  "required": ["customer", "current", "recommended", "packageFeatures", "options"],
+  "properties": {
+    "customer": {
+      "type": "object",
+      "required": ["name", "generated", "contact"],
+      "properties": {
+        "name":      { "type": "string", "description": "Customer / company name. Renders in title and meta row." },
+        "generated": { "type": "string", "description": "Human-readable date, e.g. \"April 30, 2026\"." },
+        "contact":   { "type": "string", "description": "CSM name + role, e.g. \"Annie Chen, CSM\"." }
+      },
+      "additionalProperties": false
+    },
+    "current": {
+      "type": "object",
+      "description": "Customer's current state. All fields optional but render the section better when present.",
+      "properties": {
+        "plan":          { "type": "string", "description": "Short plan name, e.g. \"Custom Standard\"." },
+        "planDetail":    { "type": "string", "description": "Optional fuller plan descriptor." },
+        "mrr":           { "type": "number", "description": "Current monthly recurring revenue, USD, no formatting." },
+        "arr":           { "type": "number", "description": "Current annual recurring revenue, USD." },
+        "ugcLimit":      { "type": "number", "description": "Provisioned UGC ceiling per month." },
+        "ugcAvg":        { "type": "number", "description": "Trailing 6-month average UGC per month." },
+        "ugcThisMonth":  { "type": "number" },
+        "utilization":   { "type": "number", "description": "Integer percent, e.g. 25." },
+        "seats":         { "type": "number", "description": "Active seats over last 90 days." },
+        "workspaces":    { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "recommended": {
+      "type": "object",
+      "required": ["tier"],
+      "properties": {
+        "tier":         { "type": "string", "description": "Package name, e.g. \"Growth\". Used in recommendation strip pill." },
+        "addOns":       { "type": "number", "description": "Number of add-on packs, e.g. 3." },
+        "listMonthly":  { "type": "number", "description": "Pre-discount monthly total at this configuration." }
+      }
+    },
+    "packageFeatures": {
+      "type": "object",
+      "description": "The recommended package's exact contents. Use the package definitions verbatim.",
+      "required": ["name", "tagline", "ugcLimit", "credits", "features", "creditsBased", "addOns"],
+      "properties": {
+        "name":     { "type": "string", "description": "Exact package name from pricing page (e.g. \"Growth\")." },
+        "tagline":  { "type": "string", "description": "One-line description of who the package is for." },
+        "ugcLimit": { "type": "string", "description": "Display string, e.g. \"2,500/mo\"." },
+        "credits":  { "type": "string", "description": "Display string, e.g. \"70,000/mo\"." },
+        "features":     { "type": "array", "items": { "$ref": "#/definitions/feature" } },
+        "creditsBased": { "type": "array", "items": { "$ref": "#/definitions/feature" } },
+        "addOns":       { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "options": {
+      "type": "object",
+      "description": "Renewal options. Both may be present; pass null for either to hide that card.",
+      "properties": {
+        "annual":  { "anyOf": [{ "$ref": "#/definitions/option" }, { "type": "null" }] },
+        "twoYear": { "anyOf": [{ "$ref": "#/definitions/option" }, { "type": "null" }] }
+      }
+    }
+  },
+  "definitions": {
+    "feature": {
+      "oneOf": [
+        { "type": "string", "description": "Feature name as displayed." },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string" },
+            "note": { "type": "string", "description": "Italic gray note rendered in parens after the name, e.g. \"up to 3\"." }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "option": {
+      "type": "object",
+      "required": ["term", "basePrice", "baseList", "baseDiscount", "addOnPrice", "addOnList", "addOnPacks", "monthly", "annual", "savingsAnnual", "savingsPct"],
+      "properties": {
+        "term":          { "type": "string", "description": "Display string, e.g. \"1-Year Commitment\"." },
+        "basePrice":     { "type": "number", "description": "Discounted base monthly price." },
+        "baseList":      { "type": "number", "description": "Pre-discount base monthly price (renders strikethrough)." },
+        "baseDiscount":  { "type": "number", "description": "Integer percent off, e.g. 10." },
+        "addOnPrice":    { "type": "number", "description": "Discounted price per add-on pack per month." },
+        "addOnList":     { "type": "number", "description": "Pre-discount add-on price (renders strikethrough)." },
+        "addOnPacks":    { "type": "number" },
+        "monthly":       { "type": "number", "description": "All-in monthly total. Hero number on the card." },
+        "annual":        { "type": "number", "description": "Annualized total at this monthly rate." },
+        "contractTotal": { "type": "number", "description": "Optional. For multi-year terms, full contract value (e.g. 2-yr total)." },
+        "savingsAnnual": { "type": "number", "description": "Annual $ savings vs current ARR." },
+        "savingsPct":    { "type": "number", "description": "Integer percent reduction vs current ARR." }
+      }
+    }
+  }
+}

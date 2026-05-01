@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "retool": {
+      "type": "http",
+      "url": "https://archiveteam.retool.com/mcp"
+    }
+  }
+}

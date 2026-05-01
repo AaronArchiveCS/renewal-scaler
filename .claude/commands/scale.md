@@ -109,7 +109,7 @@ Show the CSM what was found:
 ```
 Workspaces found for [Company Name]: [list of shop IDs]
 
-Does this customer have other workspaces we should include? Enter additional shop IDs separated by commas, or type "no" to continue.
+Is the client adding new workspaces for this renewal? If yes, enter the additional shop IDs separated by commas. If no, type "no" to continue.
 ```
 
 **Wait for the CSM's response.**
@@ -127,35 +127,84 @@ Now fetch usage and billing data from PostHog and Stripe simultaneously. Use the
 
 ---
 
-**3A: PostHog — UGC Usage and Limit (from groups table)**
+**3A: Retool — UGC Usage (from production database)**
 
-Tell the user: **"Fetching PostHog usage data..."**
+Tell the user: **"Fetching UGC usage from production database (Retool)..."**
 
-Use `mcp__claude_ai_PostHog__query-run` with this HogQL query. For multi-workspace customers, run one query per shop ID and sum the results.
+Query the Archive production read replica via Retool to get actual UGC counts. The Retool resource ID is `2d92127b-9465-461d-ab9d-be914f69c9b9` (Archive / Prod / Read replica). The global variable name is `archiveProdReadReplica`.
 
+First, call `mcp__retool__retool_get_resource_typescript_definitions` with `resourceIds: ["2d92127b-9465-461d-ab9d-be914f69c9b9"]` to initialize bindings.
+
+Then, call `mcp__retool__retool_execute_resource_typescript` with this code (replace `SHOP_IDS` with the actual shop ID list from Step 2 as a comma-separated string for the SQL IN clause):
+
+```typescript
+const shopIds = [SHOP_ID_1, SHOP_ID_2]; // from Step 2, as numbers
+const now = new Date();
+const currentMonthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+const sixMonthsAgo = new Date(now);
+sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+const sixMonthStart = `${sixMonthsAgo.getUTCFullYear()}-${String(sixMonthsAgo.getUTCMonth() + 1).padStart(2, '0')}-01`;
+
+const results = await Promise.all(shopIds.map(async (sid) => {
+  const [currentMonth, sixMonthTotal, allTime, shopInfo] = await Promise.all([
+    archiveProdReadReplica(
+      "SELECT COUNT(*) as ugc_count FROM shop_items WHERE shop_id = $1 AND deleted_at IS NULL AND created_at >= $2",
+      [sid, currentMonthStart]
+    ),
+    archiveProdReadReplica(
+      "SELECT COUNT(*) as ugc_count FROM shop_items WHERE shop_id = $1 AND deleted_at IS NULL AND created_at >= $2 AND created_at < $3",
+      [sid, sixMonthStart, currentMonthStart]
+    ),
+    archiveProdReadReplica(
+      "SELECT COUNT(*) as ugc_count FROM shop_items WHERE shop_id = $1 AND deleted_at IS NULL",
+      [sid]
+    ),
+    archiveProdReadReplica(
+      "SELECT shop_name FROM public.shops WHERE id = $1",
+      [sid]
+    )
+  ]);
+  return {
+    shop_id: sid,
+    shop_name: shopInfo.data[0]?.shop_name,
+    current_month_ugc: Number(currentMonth.data[0].ugc_count),
+    prior_6mo_ugc: Number(sixMonthTotal.data[0].ugc_count),
+    six_month_avg_monthly_ugc: Math.round(Number(sixMonthTotal.data[0].ugc_count) / 6),
+    all_time_active_ugc: Number(allTime.data[0].ugc_count)
+  };
+}));
+return results;
+```
+
+Use `resourceIds: ["2d92127b-9465-461d-ab9d-be914f69c9b9"]` for the execute call.
+
+From the results, extract per shop ID and then sum for multi-workspace customers:
+
+- **UGC Used (current month)**: `current_month_ugc` — items created this billing month. For multi-workspace, sum across all shop IDs.
+- **UGC Used (6-month avg)**: `six_month_avg_monthly_ugc` — average monthly UGC ingest over prior 6 months. This is the primary metric for renewal pricing (smooths variance like we do with Stripe MRR). For multi-workspace, sum across all shop IDs.
+- **All-Time Active UGC**: `all_time_active_ugc` — total non-deleted items. Show as supplementary context.
+
+**For renewal pricing calculations (Steps 7-8), use the 6-month average as the UGC usage number** — it's the most reliable indicator of ongoing consumption, consistent with how MRR is calculated from 6-month invoice averages.
+
+The PostHog `pricing_ugc_total` value is still used as the **UGC Limit** (plan allowance). Fetch it alongside in a parallel PostHog query:
+
+Use `mcp__claude_ai_PostHog__query-run` with:
 ```json
 {
   "query": {
     "kind": "HogQLQuery",
-    "query": "SELECT key AS shop_id, JSONExtractString(properties, 'shop_name') AS shop_name, JSONExtractFloat(properties, 'pricing_ugc_used') AS ugc_used, JSONExtractFloat(properties, 'pricing_ugc_total') AS ugc_total, JSONExtractFloat(properties, 'pricing_credits_used') AS credits_used, JSONExtractFloat(properties, 'pricing_credits_total') AS credits_total FROM groups WHERE key IN ('{shop_id_1}', '{shop_id_2}') LIMIT 10"
+    "query": "SELECT key AS shop_id, JSONExtractFloat(properties, 'pricing_ugc_total') AS ugc_total, JSONExtractFloat(properties, 'pricing_credits_used') AS credits_used, JSONExtractFloat(properties, 'pricing_credits_total') AS credits_total FROM groups WHERE key IN ('{shop_id_1}', '{shop_id_2}') LIMIT 10"
   }
 }
 ```
 
-Replace the `IN (...)` clause with the actual shop IDs from Step 2.
+- **UGC Limit**: `pricing_ugc_total` from PostHog groups table. For multi-workspace, sum.
+- **Utilization %**: `6_month_avg_ugc / ugc_total * 100`, rounded to nearest integer.
+- **Credits Used / Credits Total**: If non-zero, include as supplementary data.
 
-From the results, extract:
+If the Retool query returns 0 for `all_time_active_ugc` for a shop ID, warn: "Shop ID [id] has no active items in the production database — verify it exists."
 
-- **UGC Used**: `pricing_ugc_used` — current billing period UGC consumed. For multi-workspace customers, sum across all shop IDs.
-- **UGC Limit**: `pricing_ugc_total` — current billing period UGC allowance. For multi-workspace, sum across all shop IDs.
-- **Utilization %**: `ugc_used / ugc_total * 100`, rounded to nearest integer.
-- **Credits Used / Credits Total**: If non-zero, include in output as supplementary data.
-
-**Note:** The `groups` table is the source of truth for UGC usage — it reflects the database, not frontend analytics events. The `events` table (`crm.shop_item.created`) only covers a small fraction of shops and is unreliable for UGC counts.
-
-If the query returns no rows for a shop ID, warn: "Shop ID [id] not found in PostHog groups table — verify it exists in the system."
-
-Tell the user: **"PostHog UGC data... done."**
+Tell the user: **"Production UGC data... done."**
 
 ---
 
@@ -182,55 +231,71 @@ Tell the user: **"PostHog seat count... done."**
 
 ---
 
-**3C: Stripe — Plan, Pricing, and UGC Limit**
+**3C: Stripe — Plan, Pricing, and MRR/ARR (Invoice-Based)**
 
 Tell the user: **"Fetching Stripe billing data..."**
 
-The Stripe lookup uses a cascading strategy. Try each approach in order until a subscription is found:
+**IMPORTANT:** Customers may have multiple Stripe customer IDs (e.g., a legacy account and a current one). Always search by company name to find ALL customer records, then use the one with the most recent paid invoices.
 
-**Approach 1 — Stripe Customer ID from HubSpot (preferred):**
+**Step 3C-1: Find all Stripe customer records**
 
-Check if the HubSpot company record from Step 1 has a `stripe_customer_id` property. If it is populated, use:
-
-```
-mcp__claude_ai_Stripe__list_subscriptions
-  customer: "<stripe_customer_id>"
-```
-
-**Approach 2 — Search Stripe by shop_id metadata (fallback):**
-
-If no `stripe_customer_id` was found on the HubSpot record, search Stripe subscriptions by shop_id metadata:
+First, ALWAYS search Stripe by company name to find all customer records:
 
 ```
 mcp__claude_ai_Stripe__search_stripe_resources
-  resource: "subscriptions"
-  query: "metadata['shop_id']:'<shop_id>'"
+  query: "customers:name~'<company_name>'"
 ```
 
-Use the first (primary) shop ID from Step 2.
+Also check if the HubSpot company record has a `stripe_customer_id` property. If it does, add it to the list of customer IDs to check.
 
-**Approach 3 — Search Stripe by company name (last resort):**
+Collect ALL unique Stripe customer IDs found.
 
-If Approaches 1 and 2 both return no results, search Stripe customers by company name:
+**Step 3C-2: Pull invoices for each customer ID**
+
+For EACH Stripe customer ID found, pull the last 12 invoices:
 
 ```
-mcp__claude_ai_Stripe__search_stripe_resources
-  resource: "customers"
-  query: "name:'<company_name>'"
+mcp__claude_ai_Stripe__list_invoices
+  customer: "<customer_id>"
+  limit: 12
 ```
 
-Then use the matched customer's ID to list subscriptions:
+**Step 3C-3: Select the correct customer ID**
+
+The correct customer ID is the one with the most recent **paid** invoices (`status: "paid"`). If multiple IDs have recent invoices, prefer the one with larger `amount_paid` values (the real billing account, not a legacy stub).
+
+Tell the user which Stripe customer ID was selected and note if multiple were found:
+> Stripe customer: [selected_id] (found [N] customer record(s) — using the one with most recent billing activity)
+
+**Step 3C-4: Calculate MRR and ARR from actual invoices**
+
+Using the selected customer's invoices, calculate MRR based on what the customer has actually paid — not the subscription price, which may be stale or on the wrong customer record.
+
+1. Take the last 6 **paid** invoices (status: "paid") from the selected customer
+2. Sum the `amount_paid` values (these are in cents — divide by 100)
+3. **MRR** = 6-month total / 6 (average monthly payment)
+4. **ARR** = MRR × 12
+
+Show the invoice breakdown to the user:
+```
+--- Invoice History (last 6 months) ---
+[date]: $[amount]
+[date]: $[amount]
+...
+6-month average: $[MRR]/mo
+```
+
+If fewer than 6 paid invoices exist, use however many are available and note it:
+> WARNING: Only [N] paid invoices found. MRR based on [N]-month average.
+
+**Step 3C-5: Get plan name from active subscription**
+
+After selecting the correct customer ID, list their subscriptions:
 
 ```
 mcp__claude_ai_Stripe__list_subscriptions
-  customer: "<matched_customer_id>"
+  customer: "<selected_customer_id>"
 ```
-
----
-
-**Once a subscription is found, extract the following:**
-
-**Plan name:**
 
 Get the product linked to the subscription's price. The subscription response contains `items.data[0].price.product` (a product ID). Fetch the full product:
 
@@ -241,24 +306,9 @@ mcp__claude_ai_Stripe__fetch_stripe_resources
 
 The product `name` is the plan name.
 
-**Monthly and annual price:**
-
-Get the price object from the subscription's `items.data[0].price` (or fetch it if only the ID is available):
-
-```
-mcp__claude_ai_Stripe__fetch_stripe_resources
-  resource: "prices/<price_id>"
-```
-
-- If `recurring.interval` is `"month"`: monthly price = `unit_amount / 100`. Annual price = monthly * 12.
-- If `recurring.interval` is `"year"`: annual price = `unit_amount / 100`. Monthly price = annual / 12.
-- If `unit_amount` is null but the subscription has a different amount field, use that.
-
 **UGC limit:**
 
-The UGC limit is already retrieved from PostHog's `groups` table in Step 3A (`pricing_ugc_total`). This is the database source of truth. No need to extract it from Stripe metadata.
-
-If the Stripe price nickname contains a UGC number (e.g., "C1 - 250 UGC", "CN5 5,000 UGC"), note it as a cross-reference but prefer the `pricing_ugc_total` value from PostHog.
+The UGC limit is retrieved from PostHog's `groups` table in Step 3A (`pricing_ugc_total`). UGC usage comes from the Retool production database (also Step 3A). No need to extract either from Stripe metadata.
 
 Tell the user: **"Stripe billing data... done."**
 
@@ -275,13 +325,13 @@ These fields are required. If any are null, missing, or could not be retrieved, 
 - **Plan name:** If null or missing, stop and show:
   > MISSING: Plan name — could not find an active Stripe subscription for [Company Name]. Stripe customer: [stripe_id or "not found"]. Check Stripe manually and verify the customer has an active subscription.
 
-- **Current price:** If null or missing, stop and show:
-  > MISSING: Current price — Stripe subscription [sub_id] does not have a valid price object. Check the price configuration in Stripe for this subscription.
+- **MRR/ARR:** If no paid invoices were found for any Stripe customer ID, stop and show:
+  > MISSING: MRR/ARR — no paid invoices found for [Company Name] across [N] Stripe customer ID(s) checked. Verify the customer has billing activity in Stripe.
 
-- **UGC usage:** If the PostHog groups query returned an error or no rows for any shop ID, stop and show:
-  > MISSING: UGC usage — PostHog groups query failed for shop_id(s) [ids]. Error: [error message]. Check if these shop IDs exist in PostHog project 192859.
+- **UGC usage:** If the Retool production DB query returned an error or `all_time_active_ugc = 0` for all shop IDs, stop and show:
+  > MISSING: UGC usage — Retool production DB query failed for shop_id(s) [ids]. Error: [error message]. Check if these shop IDs exist in the production database.
 
-  Note: Zero UGC used (`pricing_ugc_used = 0`) is a valid result (low-activity customer), NOT a missing field. Only hard-stop if the query itself errored or returned no rows.
+  Note: Zero current-month UGC with non-zero all-time UGC is a valid result (seasonal customer), NOT a missing field. Only hard-stop if the query itself errored or returned no rows for any shop ID.
 
 **Secondary fields — warn and continue (per D-13):**
 
@@ -300,7 +350,7 @@ These fields are helpful but not blocking. If missing, add a warning to the outp
 
 If any MCP tool call fails with an error response, connection error, or timeout, **stop immediately** and show:
 
-> ERROR: [System name — HubSpot / PostHog / Stripe] is unreachable. Tool call failed: [error message]. Re-run `/scale` when the system is available.
+> ERROR: [System name — HubSpot / PostHog / Stripe / Retool] is unreachable. Tool call failed: [error message]. Re-run `/scale` when the system is available.
 
 Do NOT silently retry. Do NOT continue with partial data from other systems.
 
@@ -318,14 +368,18 @@ Customer Tier:  [customer_tier from HubSpot]
 Shop ID(s):     [comma-separated list from Step 2]
 Workspaces:     [count of shop IDs]
 
---- Current Plan ---
+--- Current Plan & Revenue ---
 Plan:           [Plan name from Stripe product]
-Monthly Price:  $[amount, formatted with commas]
-Annual Price:   $[amount, formatted with commas]
+MRR:            $[6-month avg from invoices, formatted with commas]
+ARR:            $[MRR × 12, formatted with commas]
+Stripe Customer: [selected customer ID]
 
---- UGC Usage (current billing period) ---
-UGC Used:       [pricing_ugc_used] / [pricing_ugc_total]
-Utilization:    [ugc_used / ugc_total * 100, rounded]%
+--- UGC Usage (from production database) ---
+UGC This Month: [current_month_ugc]
+UGC 6-Mo Avg:   [six_month_avg_monthly_ugc]/mo (used for pricing calc)
+UGC All-Time:   [all_time_active_ugc] active items
+UGC Limit:      [pricing_ugc_total from PostHog]
+Utilization:    [six_month_avg / ugc_total * 100, rounded]%
 Credits Used:   [pricing_credits_used] / [pricing_credits_total] (if non-zero, otherwise omit this line)
 
 --- Seats ---
@@ -339,7 +393,33 @@ Data collection complete. Calculating optimal pricing...
 
 **Notes:**
 - All monetary values should include dollar signs and comma separators (e.g., $1,200 not $1200).
-- UGC data comes from PostHog's `groups` table (database source of truth), not the `events` table. The `events` table events like `crm.shop_item.created` only cover ~9 shops and are unreliable for UGC counts.
+- UGC usage data comes from the **Retool production database** (shop_items table) — the true source of truth. PostHog's `six_month_avg_monthly_ugc` in the groups table is unreliable (consistently underreports by 30-50%).
+- The **6-month average** is used for pricing calculations, matching the methodology used for MRR (6-month invoice average).
+
+---
+
+### Step 5B: CSM Renewal Context
+
+After showing the data profile, ask the CSM one question about UGC needs before proceeding to pricing:
+
+```
+Does the client need more UGC capacity for this renewal?
+1. No — keep current usage as the baseline
+2. Yes — I know the target (enter the desired UGC/mo threshold)
+3. Yes — add a flat amount on top of current (e.g., +500, +1000)
+4. Yes — increase by ___% from today's 6-month avg
+
+Enter 1, 2, 3, or 4:
+```
+
+**Wait for the CSM's response.**
+
+- **Option 1 (No):** Use `six_month_avg_monthly_ugc` from Step 5 as the UGC number for pricing. Proceed to Step 6.
+- **Option 2 (Yes, known target):** Ask the CSM to enter the desired UGC/mo number. Use that number instead of `six_month_avg_monthly_ugc` for all pricing calculations in Steps 7-8. Show: "UGC target overridden: [new_target]/mo (was [six_month_avg]/mo from prod DB)."
+- **Option 3 (Yes, flat increase):** Ask the CSM to enter the additional UGC amount. Calculate: `new_target = six_month_avg_monthly_ugc + flat_amount`. Use that for pricing. Show: "UGC target adjusted: [new_target]/mo ([six_month_avg] + [flat_amount] additional)."
+- **Option 4 (Yes, % increase):** Ask the CSM to enter the % increase. Calculate: `new_target = six_month_avg_monthly_ugc * (1 + pct/100)`, rounded up. Use that for pricing. Show: "UGC target adjusted: [new_target]/mo (+[pct]% from [six_month_avg]/mo)."
+
+Store the final UGC target for use in Steps 7-8.
 
 ---
 
@@ -373,12 +453,12 @@ Using the customer's UGC usage from the CUSTOMER DATA PROFILE output in Step 5, 
 
 **Algorithm:**
 
-1. Read `pricing_ugc_used` from the Step 5 output (the UGC Used value).
+1. Read `six_month_avg_monthly_ugc` from the Step 5 output (the UGC 6-Mo Avg value). This is the primary metric for pricing.
 
-2. **Zero or null usage:** If `pricing_ugc_used` is 0 or null (valid data, not a missing field), recommend Startup with 0 add-on packs at $500/mo. Skip to the output step below.
+2. **Zero or null usage:** If `six_month_avg_monthly_ugc` is 0 or null (valid data, not a missing field), recommend Startup with 0 add-on packs at $500/mo. Skip to the output step below.
 
 3. **For each base plan** (Startup, Growth, Enterprise), calculate:
-   - UGC gap = `pricing_ugc_used` - plan's UGC limit
+   - UGC gap = `six_month_avg_monthly_ugc` - plan's UGC limit
    - If gap <= 0: packs needed = 0 (the plan covers all usage)
    - If gap > 0: packs needed = ceil(gap / 500)
    - Total monthly cost = plan's monthly price + (packs needed * $250)
@@ -386,7 +466,7 @@ Using the customer's UGC usage from the CUSTOMER DATA PROFILE output in Step 5, 
 
 4. **Select the combination with the lowest total monthly cost.** If two combinations tie on cost, prefer the one with the higher-tier plan (it includes more credits).
 
-5. **High usage warning:** If `pricing_ugc_used` exceeds 15,000, still calculate the optimal combo but append this warning after the result:
+5. **High usage warning:** If `six_month_avg_monthly_ugc` exceeds 15,000, still calculate the optimal combo but append this warning after the result:
    > NOTE: This customer uses [N] UGC/mo, which requires [X] add-on packs on top of Enterprise. Custom pricing may be more appropriate -- consult with leadership before presenting these options.
 
 6. **Show the calculation breakdown:**
@@ -394,7 +474,7 @@ Using the customer's UGC usage from the CUSTOMER DATA PROFILE output in Step 5, 
 ```
 === OPTIMAL PLAN CALCULATION ===
 
-Customer UGC Usage: [pricing_ugc_used]/mo
+Customer UGC Usage: [six_month_avg_monthly_ugc]/mo (6-month avg from prod DB)
 
 --- Comparison ---
 Startup ($500/mo, 500 UGC):      + [N] add-on packs ($[cost]/mo) = $[total]/mo
@@ -416,13 +496,13 @@ Using the optimal combo from Step 7 and the customer's current pricing from Step
 
 **Before generating options, check if the customer is already optimal:**
 
-Compare the customer's current plan name (from Step 5) against the optimal plan name (from Step 7), and compare the customer's current monthly price against the optimal annual-discounted monthly rate (within $50/mo tolerance to account for rounding). If BOTH match, the customer is already on the optimal plan at a competitive rate. In that case, show:
+Compare the customer's current plan name (from Step 5) against the optimal plan name (from Step 7), and compare the customer's MRR (from Step 3C invoices) against the optimal annual-discounted monthly rate (within $50/mo tolerance to account for rounding). If BOTH match, the customer is already on the optimal plan at a competitive rate. In that case, show:
 
 ```
 === RENEWAL OPTIONS ===
 
 This customer is already on the optimal plan ([Plan Name]) at a competitive rate.
-Current: $[current_monthly]/mo | Optimal annual: $[optimal_annual_monthly]/mo
+Current: $[MRR]/mo MRR | Optimal annual: $[optimal_annual_monthly]/mo
 No plan change recommended. Consider a 2-year lock-in for additional savings.
 ```
 
@@ -450,29 +530,38 @@ Apply 20% discount to BOTH the base plan monthly rate AND each add-on pack month
 **Savings calculation:**
 
 For each option, calculate:
-- Customer's current annual spend: `current_monthly_price * 12` (from Step 5's Monthly Price). If Step 5 already has an annual figure, use that directly.
+- Customer's current ARR: from Step 3C invoice-based calculation (MRR × 12)
 - Recommended annual spend: the annual contract price from the option
-- Annual savings: `current_annual - recommended_annual`
+- Annual savings: `current_ARR - recommended_annual`
 - If savings is negative (recommended costs MORE than current), show the increase amount and note it explicitly. Do not hide cost increases.
 
 **No volume discounts, no loyalty discounts, no custom pricing.** Only the standard 10% annual and 20% 2-year discount rates apply.
 
-**Output format -- present both options as structured blocks:**
+**Output format -- present all three options as structured blocks:**
+
+**Always generate Option A (Protect ARR) first** — this is the preferred approach. Options B and C show what usage-based pricing would look like for reference.
 
 ```
 === RENEWAL OPTIONS ===
 
-Current spend: $[current_monthly]/mo ($[current_annual]/yr) on [current_plan_name]
-Recommended plan: [optimal_plan_name] + [N] UGC add-on pack(s)
+Current spend: $[MRR]/mo MRR ($[ARR]/yr ARR) on [current_plan_name]
+Optimal usage-based plan: [optimal_plan_name] + [N] UGC add-on pack(s) = $[optimal_monthly]/mo
 
---- Option 1: Annual Commitment ---
+--- Option A: Protect ARR — Current + 5% Increase (RECOMMENDED) ---
+Current MRR:     $[MRR]/mo
+New MRR (+5%):   $[MRR * 1.05, rounded to nearest dollar]/mo
+Annual price:    $[new_MRR * 12]/yr
+2-Year price:    $[new_MRR * 24]/yr
+vs Current:      $[increase_amount]/yr increase
+
+--- Option B: Usage-Based — Annual Commitment (10% off) ---
 Base plan:       [Plan Name] @ $[discounted_monthly]/mo (10% off $[list_monthly])
 UGC add-ons:     [N] pack(s) @ $[discounted_addon_monthly]/mo each (10% off $250)
 Monthly total:   $[total_monthly]
 Annual price:    $[annual_total]
 vs Current:      $[savings]/yr [savings | increase]
 
---- Option 2: 2-Year Commitment ---
+--- Option C: Usage-Based — 2-Year Commitment (20% off) ---
 Base plan:       [Plan Name] @ $[discounted_monthly]/mo (20% off $[list_monthly])
 UGC add-ons:     [N] pack(s) @ $[discounted_addon_monthly]/mo each (20% off $250)
 Monthly total:   $[total_monthly]
@@ -481,7 +570,14 @@ Annual price:    $[annual_total]
 vs Current:      $[savings]/yr [savings | increase]
 ```
 
-**Display fields per option (all 7 required):**
+**Option A calculation:**
+- Take the customer's current MRR from Step 3C (invoice-based)
+- Apply a 5% increase: `new_MRR = MRR * 1.05`, rounded to nearest dollar
+- Annual: `new_MRR * 12`
+- 2-Year: `new_MRR * 24`
+- This option keeps the customer on their current plan structure with a standard price increase — no plan migration needed
+
+**Display fields per usage-based option (all 7 required):**
 1. Base plan name (e.g., "Growth")
 2. Base plan price (discounted monthly rate)
 3. Number of UGC add-on packs (e.g., "2 packs")
@@ -490,97 +586,131 @@ vs Current:      $[savings]/yr [savings | increase]
 6. Total annual / total contract price
 7. Savings vs current spend (or cost increase if applicable)
 
-Tell the user: **"Renewal options generated. Review the pricing above and use it for your renewal conversation."**
+Tell the user: **"Renewal options generated. Option A (Protect ARR) is the recommended default. Options B and C show usage-based pricing for reference. Review and use for your renewal conversation."**
 
 ---
 
-### Step 9: Generate HTML Document
+### Step 9: Generate Renewal Overview HTML
 
-After displaying the renewal options text output, generate a polished HTML document that consolidates all the data from Steps 5-8 into a visual format CSMs can screenshot or print to PDF.
+After displaying the renewal options text output, generate a polished, client-ready renewal proposal using the **Renewal Overview** design template.
 
-Tell the user: **"Generating HTML report..."**
+Tell the user: **"Generating Renewal Overview..."**
 
-**Build a complete HTML string** using the data already collected in the prior steps. The HTML must be fully self-contained — all CSS in a `<style>` tag, no external stylesheets, no JavaScript dependencies.
+**The output is a single self-contained HTML file** that uses the Renewal Overview design system from `~/renewal-scaler/handoff/`. Read these reference files to understand the exact implementation:
 
-**HTML Structure — include these sections in order:**
+1. `handoff/SPEC.md` — hard rules (typography, palette, structure, what NOT to add)
+2. `handoff/reference/Renewal Overview.html` — reference markup + styles
+3. `handoff/reference/renewal.jsx` — React component (inline into final HTML)
+4. `handoff/reference/tweaks-panel.jsx` — Tweaks panel (inline into final HTML)
+5. `handoff/input.schema.json` — JSON schema for input data
+6. `handoff/input.example.json` — example input (The Feed data)
 
-**1. Header**
+**How to generate:**
 
-Show the company name as a large heading, with customer tier, date generated, and shop ID(s) as secondary info below it.
+1. **Build the input JSON** from the data collected in Steps 1-8, matching `input.schema.json`:
 
-**2. Warning Banners (conditional)**
-
-If Step 4 produced any warnings (missing seats, uncertain UGC limit, workspace issues), render each warning as a yellow/amber banner block at the TOP of the document body, before any data sections. Each warning gets its own banner line. Style: amber/yellow background (#FEF3C7), dark amber text (#92400E), left border accent, padding. If there are no warnings, omit this section entirely — do not render an empty container.
-
-**3. Current State Baseline**
-
-Render the customer's current state as a clean data grid:
-- Current plan name and monthly/annual price (from Step 5)
-- UGC usage: used / limit with utilization percentage (from Step 5)
-- Active seats count (from Step 5)
-- Workspace count (number of shop IDs from Step 2)
-
-Use a card-style container with label-value pairs. Monetary values formatted with dollar signs and comma separators.
-
-**4. Utilization Insight**
-
-A single highlighted callout box with the utilization classification. Determine the classification from the utilization percentage calculated in Step 5:
-
-- **Overpaying** (utilization < 40%): Green-tinted box. Text: "This customer is paying $[current_monthly]/mo but only using [utilization]% of their [ugc_total] UGC allocation. They are spending approximately $[wasted_amount]/mo on unused capacity." Calculate wasted_amount as: `current_monthly * (1 - utilization/100)`, rounded to nearest dollar.
-- **Well-matched** (utilization 40-85%): Blue-tinted box. Text: "Usage aligns well with the current plan. The customer is using [ugc_used] of [ugc_total] UGC ([utilization]%). Room to grow without immediate upgrade pressure."
-- **Ceiling risk** (utilization > 85%): Red-tinted box. Text: "This customer is using [ugc_used] of [ugc_total] UGC ([utilization]%). They are approaching or exceeding plan limits. Proactive upgrade conversation recommended to avoid overage disruption."
-
-Color coding:
-- Overpaying: background #F0FDF4, border #16A34A, text #166534
-- Well-matched: background #EFF6FF, border #3B82F6, text #1E40AF
-- Ceiling risk: background #FEF2F2, border #DC2626, text #991B1B
-
-**5. Optimal Plan Calculation**
-
-Render the comparison table from Step 7 as an HTML table:
-- Columns: Plan, Base Price, UGC Limit, Add-on Packs, Add-on Cost, Total Monthly
-- Rows: Startup, Growth, Enterprise
-- Highlight the optimal (cheapest) row with a subtle green background (#F0FDF4)
-- Below the table, show the optimal selection: "Optimal: [Plan Name] + [N] UGC add-on pack(s) = $[total]/mo"
-- If high-usage warning (>15,000 UGC) was triggered in Step 7, show it as an amber note below the table
-
-**6. Renewal Option Cards**
-
-Render one card per option from Step 8. Each card is a bordered container with:
-- Card header: option name (e.g., "Option 1: Annual Commitment")
-- Plan name and base price (showing discount: "Growth @ $1,350/mo (10% off $1,500)")
-- Add-on packs and price (e.g., "2 packs @ $225/mo each (10% off $250)")
-- Total monthly equivalent (large, bold)
-- Total annual / contract price
-- Savings vs current: green text if saving money, red text if cost increase
-
-If the customer is already optimal (Step 8 detected this), show a single card with the "already optimal" message and only the 2-year lock-in option.
-
-Card styling: white background, 1px solid #E2E8F0 border, border-radius 8px, subtle shadow (0 1px 3px rgba(0,0,0,0.1)), padding 24px. Stack cards vertically with 16px gap.
-
-**7. Footer**
-
-Light gray text at the bottom: "Generated by /scale on [YYYY-MM-DD] | Internal use only — not for client distribution"
-
-**Styling requirements (in the `<style>` tag):**
-
-```
-- Font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
-- Body: max-width 800px, margin 0 auto, padding 40px 24px, background #FAFAFA, color #1E293B
-- Headings: #0F172A, font-weight 600
-- Cards/sections: background #FFFFFF, border 1px solid #E2E8F0, border-radius 8px, padding 24px, margin-bottom 16px, box-shadow 0 1px 3px rgba(0,0,0,0.1)
-- Tables: width 100%, border-collapse collapse, th background #F8FAFC, td/th padding 10px 14px, border-bottom 1px solid #E2E8F0
-- Labels: font-size 13px, color #64748B, text-transform uppercase, letter-spacing 0.05em
-- Values: font-size 16px, font-weight 500, color #1E293B
-- Savings positive: color #16A34A
-- Savings negative (cost increase): color #DC2626
-- Print media query (@media print): background white, no shadows, no box-shadow, page-break-inside avoid on cards, hide footer "Generated by" line or make it smaller
+```json
+{
+  "customer": {
+    "name": "[Company Name]",
+    "generated": "[Month Day, Year]",
+    "contact": "[CSM name from HubSpot company owner, or 'Aaron Rampersad, Head of CS']"
+  },
+  "current": {
+    "plan": "[Plan name from Stripe, shortened]",
+    "planDetail": "[Full plan descriptor if available]",
+    "mrr": [MRR number],
+    "arr": [ARR number],
+    "ugcLimit": [pricing_ugc_total from PostHog],
+    "seats": [active_seats from PostHog],
+    "workspaces": [count of shop IDs]
+  },
+  "recommended": {
+    "tier": "[Optimal plan name from Step 7]",
+    "addOns": [number of add-on packs],
+    "listMonthly": [undiscounted monthly total]
+  },
+  "packageFeatures": { ... },  // Use the tier-specific feature list (see below)
+  "options": {
+    "annual": { ... },   // Option B from Step 8
+    "twoYear": { ... }   // Option C from Step 8
+  }
+}
 ```
 
-**File output — after building the HTML string:**
+2. **Package features by tier** — use these canonical lists:
 
-1. Sanitize the company name for the filename: lowercase, replace spaces with hyphens, remove any characters that are not alphanumeric or hyphens
-2. Generate the filename: `scale_[sanitized_company]_[YYYY-MM-DD].html`
-3. Write the file to `~/Downloads/[filename]` using the Write tool
-4. Open it in the default browser: run `open ~/Downloads/[filename]`
-5. Tell the user: **"HTML report saved to ~/Downloads/[filename] and opened in your browser."**
+**Growth:**
+```json
+{
+  "name": "Growth",
+  "tagline": "For mid-market teams scaling UGC + measurement",
+  "ugcLimit": "2,500/mo",
+  "credits": "70,000/mo",
+  "features": ["Social Listening", "Reports", "Impressions + EMV", "Campaigns", "Creator Search", "UGC Super Search", {"name": "Competitor Insights", "note": "discovery + benchmarking"}, "Whitelisting + Usage Rights", "API Access"],
+  "creditsBased": ["Audience Data", "Campaign Refresh", "Deep Research", "Archive Radar", {"name": "Magic Fields", "note": "up to 3"}, "AI Sentiment Analysis"],
+  "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
+}
+```
+
+**Startup:**
+```json
+{
+  "name": "Startup",
+  "tagline": "For serious SMBs running gifting + creator discovery",
+  "ugcLimit": "500/mo",
+  "credits": "20,000/mo",
+  "features": ["Social Listening", "Reports", "Impressions + EMV", "Campaigns", "Creator Search", "UGC Super Search", {"name": "Competitor Insights", "note": "discovery only"}, "Whitelisting + Usage Rights", "API Access"],
+  "creditsBased": ["Audience Data", "Campaign Refresh"],
+  "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
+}
+```
+
+**Enterprise:**
+```json
+{
+  "name": "Enterprise",
+  "tagline": "For advanced workflows, controls, and scale",
+  "ugcLimit": "10,000/mo",
+  "credits": "150,000/mo",
+  "features": ["Social Listening", "Reports", "Impressions + EMV", "Campaigns", "Creator Search", "UGC Super Search", {"name": "Competitor Insights", "note": "discovery + benchmarking"}, {"name": "Whitelisting + Usage Rights", "note": "custom terms"}, "API Access"],
+  "creditsBased": ["Audience Data", "Campaign Refresh", "Deep Research", "Archive Radar", {"name": "Magic Fields", "note": "up to 10+"}, "AI Sentiment Analysis"],
+  "addOns": ["UGC Packs", "Credit Packs", "Extra Competitors"]
+}
+```
+
+3. **Map Option B and C to the schema's `annual` and `twoYear` objects:**
+
+For each option, populate:
+- `term`: "1-Year Commitment" or "2-Year Commitment"
+- `basePrice`: discounted base monthly (e.g., 1350 for Growth annual)
+- `baseList`: list base monthly (e.g., 1500 for Growth)
+- `baseDiscount`: integer % (10 or 20)
+- `addOnPrice`: discounted add-on per pack (225 or 200)
+- `addOnList`: 250
+- `addOnPacks`: number of packs
+- `monthly`: all-in monthly total
+- `annual`: monthly × 12
+- `contractTotal`: (2-year only) monthly × 24
+- `savingsAnnual`: current ARR - annual price
+- `savingsPct`: round(savingsAnnual / current ARR × 100)
+
+4. **Inline everything into one HTML file.** Take the reference `Renewal Overview.html` as the shell. Inline `tweaks-panel.jsx` and `renewal.jsx` into `<script type="text/babel">` blocks. Replace the hardcoded `DATA` object in `renewal.jsx` with the customer-specific values. Update `TONE_COPY` text to reference the actual customer name, recommended tier, and add-on count.
+
+5. **Follow all SPEC.md hard rules:**
+- No tier or shop ID in the meta row
+- No UGC usage averages, utilization %, or "overpaying" framing in the rendered doc
+- Forest green for savings only
+- Strikethrough list price + discounted price on every line item
+- Exactly 4 sections: Where you are today, Our recommendation, What's included, Two ways to renew
+- Featured option gets 1.5px ink border + gradient fill + dark tag
+- Tweaks panel: tone, highlight, show-stats toggle, density, print button
+
+**Note on Option A (Protect ARR):** The Renewal Overview design shows only two options (annual + 2-year). Option A (the +5% protect-ARR pricing) is shown in the **text output** in the conversation (Step 8) but is NOT included in the client-facing HTML document. The HTML is meant to be shareable with the customer and should only show the usage-based options.
+
+**File output:**
+
+1. Generate the filename: `Renewal Overview - [Company Name].html`
+2. Write the file to `~/Downloads/[filename]` using the Write tool
+3. Open it in the default browser: run `open ~/Downloads/[filename]`
+4. Tell the user: **"Renewal Overview saved to ~/Downloads/[filename] and opened in your browser. Use the Tweaks panel to adjust tone, density, and which option to highlight before sharing."**
